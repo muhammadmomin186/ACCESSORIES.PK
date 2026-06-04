@@ -2748,6 +2748,9 @@ function editProduct(id) {
 
 /* ── SAVE ── */
 function saveProduct() {
+  // Check Firebase first
+  if (!fbReady) { showToast('Firebase not connected yet. Check your config.'); return; }
+
   const name = document.getElementById('f-name').value.trim();
   const brand = document.getElementById('f-brand').value.trim();
   const cat = document.getElementById('f-cat').value;
@@ -2755,19 +2758,15 @@ function saveProduct() {
   const emoji = document.getElementById('f-emoji').value.trim();
   const desc = document.getElementById('f-desc').value.trim();
 
-  // Validate required fields
   let valid = true;
   [['f-name', name], ['f-brand', brand], ['f-price', priceVal], ['f-emoji', emoji], ['f-desc', desc]].forEach(([id, val]) => {
     const el = document.getElementById(id);
     if (!val) { el.classList.add('err'); valid = false; }
     else el.classList.remove('err');
   });
-  if (!cat) {
-    document.getElementById('f-cat').classList.add('err'); valid = false;
-  } else {
-    document.getElementById('f-cat').classList.remove('err');
-  }
-  if (!valid) { showToast('Please fill in all required fields'); return; }
+  if (!cat) { document.getElementById('f-cat').classList.add('err'); valid = false; }
+  else { document.getElementById('f-cat').classList.remove('err'); }
+  if (!valid) { showToast('Please fill all required fields'); return; }
 
   const price = parseInt(priceVal);
   const wasVal = document.getElementById('f-was').value.trim();
@@ -2776,60 +2775,39 @@ function saveProduct() {
   const specs = getSpecs();
   const isNew = badge === 'new';
 
-  if (editingId !== null) {
-    // Update existing
-    const idx = products.findIndex(p => p.id === editingId);
-    if (idx !== -1) {
-      products[idx] = { ...products[idx], name, brand, cat, price, was, emoji, badge, desc, specs, new: isNew };
-    }
-    showToast('Product updated ✓');
-  } else {
-    // Add new
-    const maxId = products.reduce((m, p) => Math.max(m, p.id), 0);
-    products.push({
-      id: maxId + 1,
-      name, brand, cat, price, was, emoji, badge,
-      rating: 5.0, reviews: 0, new: isNew,
-      colors: ['#000000'],
-      desc, specs
-    });
-    showToast('Product added ✓');
-  }
+  // Get existing product BEFORE any mutation to preserve _docId, rating, reviews, colors
+  const existingProduct = editingId !== null ? products.find(p => p.id === editingId) : null;
+  const docId = existingProduct ? (existingProduct._docId || null) : null;
+  const isEditing = editingId !== null;
 
   const productData = {
-    id: editingId !== null ? products.find(p=>p.id===editingId)?.id : Date.now(),
-    name, brand, cat, price, was: was || null, emoji, badge: badge || null,
-    rating: editingId !== null ? (products.find(p=>p.id===editingId)?.rating || 5.0) : 5.0,
-    reviews: editingId !== null ? (products.find(p=>p.id===editingId)?.reviews || 0) : 0,
+    name, brand, cat, price,
+    was: was || null,
+    emoji,
+    badge: badge || null,
+    rating: existingProduct ? (existingProduct.rating || 5.0) : 5.0,
+    reviews: existingProduct ? (existingProduct.reviews || 0) : 0,
     new: isNew,
-    colors: editingId !== null ? (products.find(p=>p.id===editingId)?.colors || ['#000000']) : ['#000000'],
+    colors: existingProduct ? (existingProduct.colors || ['#000000']) : ['#000000'],
     desc, specs
   };
+  if (existingProduct && existingProduct.id != null) productData.id = existingProduct.id;
 
-  const docId = editingId !== null ? products.find(p=>p.id===editingId)?._docId : null;
-
-  if (!fbReady) {
-    showToast('Firebase not connected yet. Check your config.');
-    return;
-  }
-
-  // Show saving state
   const saveBtn = document.getElementById('adminSaveBtn');
   saveBtn.textContent = 'Saving…';
   saveBtn.disabled = true;
 
   saveToFirebase(productData, docId)
     .then(() => {
-      showToast(editingId !== null ? 'Product updated ✓' : 'Product added ✓');
+      showToast(isEditing ? 'Product updated ✓' : 'Product added ✓');
       resetForm();
-      // UI refreshes automatically via onSnapshot listener
     })
     .catch(err => {
       console.error(err);
-      showToast('Error saving. Check Firebase config.');
+      showToast('Error: ' + (err.message || 'Check Firebase config & Firestore rules.'));
     })
     .finally(() => {
-      saveBtn.textContent = editingId !== null ? 'Update Product' : 'Save Product';
+      saveBtn.textContent = isEditing ? 'Update Product' : 'Save Product';
       saveBtn.disabled = false;
     });
 }
@@ -2857,26 +2835,27 @@ function deleteProduct(id) {
 }
 
 /* ── INIT ── */
-// Run everything after DOM is fully ready
 function initApp() {
   renderHome();
   updateBadges();
-  // Handle #admin hash on initial load
-  if (window.location.hash === '#admin') {
-    handleHash();
-  }
-  // When Firebase module finishes loading, switch to live data
-  if (window._fbReady) {
-    onFirebaseReady();
-  } else {
-    window.addEventListener('fb-ready', onFirebaseReady);
-  }
+  if (window.location.hash === '#admin') handleHash();
 }
+
+function tryConnectFirebase() {
+  if (window._fbReady && !fbReady) onFirebaseReady();
+}
+
+window.addEventListener('fb-ready', tryConnectFirebase);
+
+// Fallback poll in case the event fired before this listener was registered
+const _fbPoll = setInterval(() => {
+  if (window._fbReady) { clearInterval(_fbPoll); tryConnectFirebase(); }
+}, 150);
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initApp);
 } else {
-  initApp(); // DOM already ready
+  initApp();
 }
 </script>
 </body>

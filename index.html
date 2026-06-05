@@ -1823,6 +1823,7 @@ footer {
   <div class="admin-container">
 
     <!-- Stats -->
+    <div id="fbStatusBar" style="background:#fff3cd;color:#856404;padding:8px 16px;font-size:12px;border-radius:6px;margin-bottom:12px;display:none">⚠️ Firebase connecting… Save disabled until connected.</div>
     <div class="admin-stats">
       <div class="stat-card">
         <div class="stat-num" id="stat-total">0</div>
@@ -2065,13 +2066,13 @@ let products = [...defaultProducts]; // will be replaced by Firebase data
 let cart = [];
 let wishlist = new Set();
 let currentFilter = 'All';
-let activePage = 'home';
+window.activePage = 'home';
 
 /* ── NAVIGATION ── */
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('pg-' + id).classList.add('active');
-  activePage = id;
+  window.activePage = id;
   window.scrollTo(0, 0);
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const navEl = document.getElementById('nav-' + id);
@@ -2141,7 +2142,7 @@ function filterCat(cat) {
   const labels = { All:'All Products', New:'New Arrivals', Sale:'On Sale' };
   const el = document.getElementById('shop-heading');
   if (el) el.textContent = labels[cat] || cat;
-  if (activePage === 'shop') renderShop();
+  if (window.activePage === 'shop') renderShop();
 }
 
 function filterBrand(brand) {
@@ -2152,7 +2153,7 @@ function filterBrand(brand) {
 
 function handleSearch(val) {
   currentFilter = 'search:' + val;
-  if (activePage !== 'shop') goShop();
+  if (window.activePage !== 'shop') goShop();
   else renderShop();
 }
 
@@ -2465,7 +2466,7 @@ function toggleWish(e, id) {
       if (match && parseInt(match[0]) === id) btn.classList.toggle('liked', wishlist.has(id));
     }
   });
-  if (activePage === 'wish') renderWish();
+  if (window.activePage === 'wish') renderWish();
 }
 
 function renderWish() {
@@ -2529,12 +2530,16 @@ function subscribeProducts() {
   const { onSnapshot, query, orderBy, col } = window._fb;
   onSnapshot(query(col), snap => {
     if (snap.empty) {
-      // First run — seed Firestore with default products
       seedDefaultProducts();
       return;
     }
     products.length = 0;
-    snap.forEach(d => products.push({ ...d.data(), _docId: d.id }));
+    snap.forEach(d => {
+      const data = d.data();
+      // Convert specs [{k,v},...] back to [[k,v],...] for UI
+      data.specs = (data.specs || []).map(s => (s && s.k !== undefined) ? [s.k, s.v] : s);
+      products.push({ ...data, _docId: d.id });
+    });
     // Refresh UI
     renderHome();
     if (window.activePage === 'shop') renderShop();
@@ -2548,7 +2553,8 @@ async function seedDefaultProducts() {
   const { addDoc, col } = window._fb;
   showToast('Setting up your store for the first time…');
   for (const p of defaultProducts) {
-    const { _docId, ...data } = p; // strip local-only field
+    const { _docId, ...data } = p;
+    data.specs = (data.specs || []).map(([k,v]) => ({k, v}));
     await addDoc(col, data);
   }
 }
@@ -2556,10 +2562,13 @@ async function seedDefaultProducts() {
 /* Save a product (add new or update existing) */
 async function saveToFirebase(productData, docId) {
   const { addDoc, setDoc, doc, col, db } = window._fb;
+  // Convert specs [[k,v],...] → [{k,v},...] — Firestore does not support nested arrays
+  const data = { ...productData };
+  data.specs = (data.specs || []).map(s => Array.isArray(s) ? {k: s[0], v: s[1]} : s);
   if (docId) {
-    await setDoc(doc(db, 'products', docId), productData);
+    await setDoc(doc(db, 'products', docId), data);
   } else {
-    await addDoc(col, productData);
+    await addDoc(col, data);
   }
 }
 
@@ -2593,11 +2602,6 @@ function handleHash() {
 }
 window.addEventListener('hashchange', handleHash);
 
-// Also handle if user lands directly on #admin URL
-window.addEventListener('DOMContentLoaded', () => {
-  if (window.location.hash === '#admin') handleHash();
-});
-
 function checkAdminLogin() {
   const pwd = document.getElementById('adminPwd').value;
   if (pwd === ADMIN_PASSWORD) {
@@ -2609,7 +2613,14 @@ function checkAdminLogin() {
     el.classList.add('shake');
     el.value = '';
     setTimeout(() => el.classList.remove('shake'), 400);
+    showToast('Wrong password');
   }
+}
+
+function adminLogout() {
+  sessionStorage.removeItem('apk_admin_auth');
+  goHome();
+  window.location.hash = '';
 }
 
 function showAdminPanel() {
@@ -2618,6 +2629,8 @@ function showAdminPanel() {
   resetForm();
   renderAdminList();
   renderAdminStats();
+  const bar = document.getElementById('fbStatusBar');
+  if (bar) bar.style.display = fbReady ? 'none' : 'block';
 }
 
 /* ── STATS ── */
@@ -2748,8 +2761,7 @@ function editProduct(id) {
 
 /* ── SAVE ── */
 function saveProduct() {
-  // Check Firebase first
-  if (!fbReady) { showToast('Firebase not connected yet. Check your config.'); return; }
+  if (!fbReady) { showToast('Firebase not connected yet.'); return; }
 
   const name = document.getElementById('f-name').value.trim();
   const brand = document.getElementById('f-brand').value.trim();
@@ -2772,12 +2784,12 @@ function saveProduct() {
   const wasVal = document.getElementById('f-was').value.trim();
   const was = wasVal ? parseInt(wasVal) : null;
   const badge = document.getElementById('f-badge').value || null;
-  const specs = getSpecs();
+  const specs = getSpecs(); // returns [[k,v],...]
   const isNew = badge === 'new';
 
-  // Get existing product BEFORE any mutation to preserve _docId, rating, reviews, colors
-  const existingProduct = editingId !== null ? products.find(p => p.id === editingId) : null;
-  const docId = existingProduct ? (existingProduct._docId || null) : null;
+  // Read existing product BEFORE any changes to preserve _docId, rating, reviews, colors
+  const existing = editingId !== null ? products.find(p => p.id === editingId) : null;
+  const docId = existing ? (existing._docId || null) : null;
   const isEditing = editingId !== null;
 
   const productData = {
@@ -2785,13 +2797,14 @@ function saveProduct() {
     was: was || null,
     emoji,
     badge: badge || null,
-    rating: existingProduct ? (existingProduct.rating || 5.0) : 5.0,
-    reviews: existingProduct ? (existingProduct.reviews || 0) : 0,
+    rating: existing ? (existing.rating || 5.0) : 5.0,
+    reviews: existing ? (existing.reviews || 0) : 0,
     new: isNew,
-    colors: existingProduct ? (existingProduct.colors || ['#000000']) : ['#000000'],
-    desc, specs
+    colors: existing ? (existing.colors || ['#000000']) : ['#000000'],
+    desc,
+    specs // will be converted to [{k,v}] inside saveToFirebase
   };
-  if (existingProduct && existingProduct.id != null) productData.id = existingProduct.id;
+  if (existing && existing.id != null) productData.id = existing.id;
 
   const saveBtn = document.getElementById('adminSaveBtn');
   saveBtn.textContent = 'Saving…';
@@ -2804,7 +2817,7 @@ function saveProduct() {
     })
     .catch(err => {
       console.error(err);
-      showToast('Error: ' + (err.message || 'Check Firebase config & Firestore rules.'));
+      showToast('Error: ' + (err.message || 'Check Firebase config.'));
     })
     .finally(() => {
       saveBtn.textContent = isEditing ? 'Update Product' : 'Save Product';
@@ -2835,22 +2848,18 @@ function deleteProduct(id) {
 }
 
 /* ── INIT ── */
+// Run everything after DOM is fully ready
 function initApp() {
   renderHome();
   updateBadges();
   if (window.location.hash === '#admin') handleHash();
+  // Connect Firebase - poll as fallback for race condition
+  function tryFirebase() {
+    if (window._fbReady && !fbReady) onFirebaseReady();
+  }
+  window.addEventListener('fb-ready', tryFirebase);
+  const poll = setInterval(() => { if (window._fbReady) { clearInterval(poll); tryFirebase(); } }, 200);
 }
-
-function tryConnectFirebase() {
-  if (window._fbReady && !fbReady) onFirebaseReady();
-}
-
-window.addEventListener('fb-ready', tryConnectFirebase);
-
-// Fallback poll in case the event fired before this listener was registered
-const _fbPoll = setInterval(() => {
-  if (window._fbReady) { clearInterval(_fbPoll); tryConnectFirebase(); }
-}, 150);
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initApp);

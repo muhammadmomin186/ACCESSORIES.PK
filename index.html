@@ -1531,19 +1531,10 @@ footer {
 }
 </style>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, setDoc, deleteDoc, doc, onSnapshot, query
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    /* ══════════════════════════════════════════════════════════════
-       🔥 PASTE YOUR FIREBASE CONFIG HERE
-       1. Go to https://console.firebase.google.com
-       2. Your project → Project Settings → Web App → Config
-       3. Also enable Firestore Database in test mode
-       ══════════════════════════════════════════════════════════════ */
+  <!-- Firebase SDK (non-module, loads synchronously) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
     const firebaseConfig = {
       apiKey:            "AIzaSyDV0vixhWwV8IsPgOBvOHlW2YwyoGESrh8",
       authDomain:        "accessories-pk.firebaseapp.com",
@@ -1552,17 +1543,23 @@ footer {
       messagingSenderId: "273150355491",
       appId:             "1:273150355491:web:4d6eebd5d71d45acb4e996"
     };
-
     try {
-      const app = initializeApp(firebaseConfig);
-      const db  = getFirestore(app);
-      const col = collection(db, 'products');
-      window._fb = { db, col, addDoc, setDoc, deleteDoc, doc, onSnapshot, query };
+      firebase.initializeApp(firebaseConfig);
+      const db  = firebase.firestore();
+      const col = db.collection('products');
+      // Wrap compat API to match the modular API shape the rest of the code expects
+      window._fb = {
+        db, col,
+        onSnapshot: (q, cb) => q.onSnapshot(cb),
+        query:      (c)     => c,
+        addDoc:     (c, d)  => c.add(d),
+        setDoc:     (ref, d)=> ref.set(d),
+        deleteDoc:  (ref)   => ref.delete(),
+        doc:        (db, col, id) => db.collection(col).doc(id)
+      };
       window._fbReady = true;
-      window.dispatchEvent(new Event('fb-ready'));
     } catch(e) {
-      console.warn('Firebase init failed:', e.message);
-      window.dispatchEvent(new Event('fb-failed'));
+      console.error('Firebase init failed:', e.message);
     }
   </script>
 </head>
@@ -2537,11 +2534,11 @@ function specsFromFirestore(specs) {
 
 function onFirebaseReady() {
   fbReady = true;
-  const { onSnapshot, query, col } = window._fb;
+  const { col } = window._fb;
   const statusEl = document.getElementById('fbStatus');
   if (statusEl) statusEl.textContent = '🟢 Connected';
 
-  onSnapshot(query(col), snap => {
+  col.onSnapshot(snap => {
     if (snap.empty) {
       seedFirestore(); return;
     }
@@ -2552,6 +2549,10 @@ function onFirebaseReady() {
       products.push({ ...data, _docId: d.id });
     });
     refreshAllUI();
+  }, err => {
+    console.error('Firestore error:', err.message);
+    const statusEl = document.getElementById('fbStatus');
+    if (statusEl) statusEl.textContent = '🔴 ' + err.message;
   });
 }
 
@@ -2563,29 +2564,29 @@ function refreshAllUI() {
 }
 
 async function seedFirestore() {
-  const { addDoc, col } = window._fb;
+  const { col } = window._fb;
   showToast('First run: loading products…');
   for (const p of defaultProducts) {
     const { _docId, ...data } = p;
     data.specs = specsToFirestore(data.specs);
-    await addDoc(col, data);
+    await col.add(data);
   }
 }
 
 async function saveProductToFirestore(productData, docId) {
-  const { addDoc, setDoc, doc, col, db } = window._fb;
+  const { col } = window._fb;
   const data = { ...productData };
   data.specs = specsToFirestore(data.specs);
   if (docId) {
-    await setDoc(doc(db, 'products', docId), data);
+    await col.doc(docId).set(data);
   } else {
-    await addDoc(col, data);
+    await col.add(data);
   }
 }
 
 async function deleteProductFromFirestore(docId) {
-  const { deleteDoc, doc, db } = window._fb;
-  await deleteDoc(doc(db, 'products', docId));
+  const { col } = window._fb;
+  await col.doc(docId).delete();
 }
 
 /* ── ROUTING ── */
@@ -2875,27 +2876,29 @@ function importProducts(e) {
 
 /* ── INIT ── */
 function initApp() {
-  // Show default products immediately so page is never blank
+  // Show default products immediately — page is never blank
   renderHome();
   updateBadges();
-  // Handle #admin hash AFTER render so showPage isn't overridden
+
+  // Handle #admin hash after render
   setTimeout(() => {
     if (window.location.hash === '#admin') handleHash();
   }, 0);
 
-  // Connect Firebase — poll as fallback for module script race condition
-  function tryFirebase() {
-    if (window._fbReady && !fbReady) onFirebaseReady();
+  // Firebase loads synchronously so _fbReady is already true here
+  // Keep a short poll just in case scripts are still loading
+  if (window._fbReady && !fbReady) {
+    onFirebaseReady();
+  } else {
+    const poll = setInterval(() => {
+      if (window._fbReady && !fbReady) {
+        clearInterval(poll);
+        onFirebaseReady();
+      }
+    }, 100);
+    // Give up after 10 seconds — show defaults only
+    setTimeout(() => clearInterval(poll), 10000);
   }
-  window.addEventListener('fb-ready', tryFirebase);
-  const poll = setInterval(() => {
-    if (window._fbReady) { clearInterval(poll); tryFirebase(); }
-  }, 200);
-
-  // If Firebase config is wrong, stay on defaults silently
-  window.addEventListener('fb-failed', () => {
-    console.warn('Firebase unavailable — showing default products');
-  });
 }
 
 window.addEventListener('hashchange', handleHash);

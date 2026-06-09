@@ -863,50 +863,7 @@ const ADMIN_PASSWORD = 'admin123';
 const WA_NUMBER = '923198604987';
 const DELIVERY_KARACHI = 200, DELIVERY_OUTSIDE = 250, FREE_SHIPPING = 4999;
 
-// ---- Default data (used on first launch before any admin edits) ----
-const DEFAULT_HERO = [
-  { url: 'https://picsum.photos/id/20/1200/500', title: 'Premium Audio Experience' },
-  { url: 'https://picsum.photos/id/0/1200/500', title: 'Power Your Day' }
-];
-const DEFAULT_FEATURE = {
-  img: 'https://picsum.photos/id/26/1200/400',
-  eyebrow: '🔥 LIMITED OFFER',
-  heading: 'Buy Any Charger → Get Data Cable FREE',
-  sub: 'Purchase any charger from our collection and receive a premium braided data cable absolutely free! Valid while stocks last.',
-  btn: 'Shop Chargers Now →'
-};
-const DEFAULT_SPOTLIGHT = [
-  { img: 'https://picsum.photos/id/1/400/500', cat: 'Audio', name: 'Earbuds & Headphones', filter: 'Earbuds' },
-  { img: 'https://picsum.photos/id/0/400/500', cat: 'Power', name: 'Power Banks', filter: 'Power Banks' },
-  { img: 'https://picsum.photos/id/20/400/500', cat: 'Audio', name: 'Speakers', filter: 'Speakers' },
-  { img: 'https://picsum.photos/id/26/400/500', cat: 'Essentials', name: 'Cables & Chargers', filter: 'Chargers' }
-];
-const DEFAULT_PROMISE = [
-  { icon: '🚚', title: 'Fast Delivery', sub: 'Karachi same-day, nationwide 1–3 days' },
-  { icon: '💳', title: 'Cash on Delivery', sub: 'Pay when your order arrives' },
-  { icon: '↩', title: '7-Day Returns', sub: 'Hassle-free return policy' },
-  { icon: '✓', title: '100% Genuine', sub: 'Authentic products guaranteed' }
-];
-const DEFAULT_ANNOUNCEMENTS = [
-  { text: '🔥 Buy Any Charger → Get a FREE Data Cable!' },
-  { text: '🚚 Free Delivery in Karachi on orders over Rs. 4,999' },
-  { text: '💵 Cash on Delivery Available' }
-];
-const defaultProducts = [
-  { id: 1, name: "Fast Charger 65W", brand: "ChargePro", cat: "Chargers", price: 2499, badge: "hot", rating: 4.8, reviews: 312, desc: "GaN fast charger for all devices.", specs: [["Output","65W"],["Ports","USB-C x 2"]], images: ["https://picsum.photos/id/0/600/600"] },
-  { id: 2, name: "Braided USB-C Cable", brand: "CableMaster", cat: "Cables", price: 499, badge: "new", rating: 4.7, reviews: 400, desc: "Durable braided cable 2m length.", specs: [["Length","2m"],["Type","USB-C to USB-C"]], images: ["https://picsum.photos/id/1/600/600"] },
-  { id: 3, name: "Wireless Charger", brand: "PowerPad", cat: "Chargers", price: 1899, badge: "hot", rating: 4.6, reviews: 278, desc: "15W fast wireless charging pad.", specs: [["Output","15W"],["Compatibility","Qi-enabled"]], images: ["https://picsum.photos/id/20/600/600"] },
-  { id: 4, name: "Car Charger", brand: "DriveCharge", cat: "Chargers", price: 1299, rating: 4.5, reviews: 189, desc: "Dual port car charger 36W.", specs: [["Ports","2x USB-C"],["Output","36W"]], images: ["https://picsum.photos/id/26/600/600"] }
-];
-
 // ---- Live data variables (initialized from local cache, then Firestore overwrites) ----
-let heroImages     = loadFromLocal('heroImages',     DEFAULT_HERO);
-let featureBanner  = loadFromLocal('featureBanner',  DEFAULT_FEATURE);
-let spotlightCards = loadFromLocal('spotlightCards', DEFAULT_SPOTLIGHT);
-let promiseItems   = loadFromLocal('promiseItems',   DEFAULT_PROMISE);
-let announcements  = loadFromLocal('announcements',  DEFAULT_ANNOUNCEMENTS);
-
-// Default Data with WORKING images
 let heroImages = loadFromLocal('heroImages', [
   { url: 'https://picsum.photos/id/20/1200/500', title: 'Premium Audio Experience' },
   { url: 'https://picsum.photos/id/0/1200/500', title: 'Power Your Day' }

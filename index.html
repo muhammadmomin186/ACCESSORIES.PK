@@ -256,29 +256,29 @@ footer { background:#1C1C1C; color:rgba(255,255,255,0.7); padding:48px 20px 40px
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
+  // CORRECTED Firebase Configuration - using the correct storage bucket from your screenshot
   const firebaseConfig = {
     apiKey: "AIzaSyDV0vixhWwV8IsPgOBvOHlW2YwyoGESrh8",
     authDomain: "accessories-pk.firebaseapp.com",
     projectId: "accessories-pk",
-    storageBucket: "accessories-pk.appspot.com",
+    storageBucket: "accessories-pk.firebasestorage.app",  // Fixed: using the correct bucket name
     messagingSenderId: "273150355491",
     appId: "1:273150355491:web:4d6eebd5d71d45acb4e996"
   };
   
   let fbReady = false;
   let db = null;
-  let storage = null;
   
   try {
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
-    storage = firebase.storage().ref();
     
+    // Test Firestore connection
     db.collection('siteSettings').doc('test').get().then(() => {
       fbReady = true;
       const statusEl = document.getElementById('fbStatus');
       if (statusEl) statusEl.innerHTML = '✓ Firebase Connected';
-      window._fb = { db, col: db.collection('products'), storage: storage };
+      window._fb = { db, col: db.collection('products'), storage: firebase.storage() };
       window._fbReady = true;
       loadAllData();
     }).catch(err => {
@@ -314,7 +314,7 @@ footer { background:#1C1C1C; color:rgba(255,255,255,0.7); padding:48px 20px 40px
   }
   
   async function uploadImageToStorage(file, folderPath) {
-    // If not connected to Firebase, return base64 data URL (works locally)
+    // If not connected to Firebase, return base64 data URL
     if (!window._fbReady) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -326,15 +326,16 @@ footer { background:#1C1C1C; color:rgba(255,255,255,0.7); padding:48px 20px 40px
       const timestamp = Date.now();
       const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const filename = timestamp + '_' + Math.random().toString(36).slice(2) + '_' + safeName;
-      // Always create a fresh storage ref — avoids stale reference bugs
-      const fileRef = firebase.storage().ref(folderPath + '/' + filename);
+      const storageRef = firebase.storage().ref();
+      const fileRef = storageRef.child(folderPath + '/' + filename);
       const snapshot = await fileRef.put(file);
       const url = await snapshot.ref.getDownloadURL();
+      console.log('Upload successful:', url);
       return url;
     } catch(e) {
       console.error('Storage upload error:', e);
-      showToast('Firebase Storage error: ' + e.message + '. Showing local preview instead.');
-      // Fallback to base64 so the spinner clears and preview still shows
+      showToast('Storage error: ' + e.message);
+      // Fallback to base64
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = ev => resolve(ev.target.result);
@@ -500,7 +501,7 @@ function renderHeroSlider(){ const slider = document.getElementById('heroSlider'
 function heroSlide(dir){ if(!heroImages.length) return; heroGoTo((heroIndex + dir + heroImages.length) % heroImages.length); }
 function heroGoTo(n){ heroIndex = n; document.querySelectorAll('.hero-slide').forEach((el,i)=>el.classList.toggle('active',i===n)); document.querySelectorAll('.hero-dot').forEach((el,i)=>el.classList.toggle('active',i===n)); clearInterval(heroTimer); if(heroImages.length>1) heroTimer = setInterval(()=>heroSlide(1), 4500); }
 function renderSliderAdmin(){ const list = document.getElementById('sliderAdminList'); if(!list) return; list.innerHTML = heroImages.map((img,i)=>`<div class="slider-img-row"><div class="slider-img-preview">${img.url?`<img src="${img.url}">`:'—'}</div><input class="slider-img-url" placeholder="Image URL" value="${img.url||''}" id="sliderUrl${i}"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*" onchange="handleSliderUpload(this,${i})"></label><span id="sliderSpin${i}" style="font-size:11px; color:#888;"></span><input class="slider-img-url" placeholder="Headline" value="${img.title||''}" id="sliderTitle${i}" style="max-width:150px;"><button class="slider-img-del" onclick="removeSliderRow(${i})">✕</button></div>`).join(''); }
-async function handleSliderUpload(input, i){ const file = input.files[0]; if(!file) return; const spinner = document.getElementById(`sliderSpin${i}`); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'hero_banners'); heroImages[i].url = url; document.getElementById('sliderUrl'+i).value = url; document.querySelector(`#sliderAdminList .slider-img-row:nth-child(${i+1}) .slider-img-preview`).innerHTML = `<img src="${url}">`; showToast('Image uploaded'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
+async function handleSliderUpload(input, i){ const file = input.files[0]; if(!file) return; const spinner = document.getElementById(`sliderSpin${i}`); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'hero_banners'); heroImages[i].url = url; document.getElementById('sliderUrl'+i).value = url; document.querySelector(`#sliderAdminList .slider-img-row:nth-child(${i+1}) .slider-img-preview`).innerHTML = `<img src="${url}">`; showToast('Image uploaded to Firebase'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
 function addSliderRow(){ if(heroImages.length >= 8){ showToast('Max 8 banners'); return; } heroImages.push({url:'', title:''}); renderSliderAdmin(); }
 function removeSliderRow(i){ heroImages.splice(i,1); if(heroIndex >= heroImages.length) heroIndex = Math.max(0, heroImages.length-1); renderSliderAdmin(); renderHeroSlider(); saveToLocalStorage('heroImages', heroImages); }
 async function saveSliderImages(){ heroImages = heroImages.map((_,i)=>({ url: document.getElementById(`sliderUrl${i}`)?.value?.trim()||'', title: document.getElementById(`sliderTitle${i}`)?.value?.trim()||'' })).filter(img=>img.url); saveToLocalStorage('heroImages', heroImages); if(window._fbReady && window._fb.db){ await window._fb.db.collection('siteSettings').doc('heroSlider').set({ images: heroImages }); showToast('Banners saved to Firebase!'); } else { showToast('Banners saved to Local Storage'); } heroIndex = 0; renderHeroSlider(); renderSliderAdmin(); }
@@ -511,7 +512,7 @@ function renderSpotlight(){ const grid = document.getElementById('spotlightGrid'
 function renderPromiseStrip(){ const inner = document.getElementById('promiseInner'); if(!inner) return; inner.innerHTML = (promoData.promise||[]).map(it=>`<div class="promise-item"><div class="promise-icon">${it.icon||''}</div><div class="promise-title">${it.title||''}</div><div class="promise-sub">${it.sub||''}</div></div>`).join(''); }
 function renderAllPromo(){ renderFeatureBanner(); renderSpotlight(); renderPromiseStrip(); }
 function renderPromoAdmin(){ const d = promoData.featureBanner; if(document.getElementById('fb-img')) document.getElementById('fb-img').value = d.img||''; if(document.getElementById('fb-eyebrow')) document.getElementById('fb-eyebrow').value = d.eyebrow||''; if(document.getElementById('fb-heading')) document.getElementById('fb-heading').value = d.heading||''; if(document.getElementById('fb-sub')) document.getElementById('fb-sub').value = d.sub||''; if(document.getElementById('fb-btn')) document.getElementById('fb-btn').value = d.btn||''; if(document.getElementById('fbImgPrevImg')){ document.getElementById('fbImgPrevImg').src = d.img||''; document.getElementById('fbImgPrevImg').style.display = d.img?'block':'none'; } const sList = document.getElementById('spotlightAdminList'); if(sList){ sList.innerHTML = promoData.spotlight.map((c,i)=>`<div class="slider-img-row"><div class="slider-img-preview">${c.img?`<img src="${c.img}">`:'—'}</div><input class="slider-img-url" placeholder="Image URL" value="${c.img||''}" id="spotImg${i}"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*" onchange="handleSpotUpload(this,${i})"></label><span id="spotSpin${i}" style="font-size:11px; color:#888;"></span><input class="slider-img-url" placeholder="Category" value="${c.cat||''}" id="spotCat${i}" style="max-width:100px;"><input class="slider-img-url" placeholder="Title" value="${c.name||''}" id="spotName${i}"><select id="spotFilter${i}" style="padding:8px;border:1px solid #C8C4BD;border-radius:6px;">${['All','Earbuds','Headphones','Speakers','Power Banks','Chargers','Mics','Smartwatches','Cables'].map(f=>`<option value="${f}" ${c.filter===f?'selected':''}>${f}</option>`).join('')}</select><button class="slider-img-del" onclick="removeSpotRow(${i})">✕</button></div>`).join(''); } const pList = document.getElementById('promiseAdminList'); if(pList){ pList.innerHTML = promoData.promise.map((it,i)=>`<div class="slider-img-row"><input class="slider-img-url" placeholder="Icon" value="${it.icon||''}" id="promIcon${i}" style="max-width:70px;"><input class="slider-img-url" placeholder="Title" value="${it.title||''}" id="promTitle${i}" style="max-width:140px;"><input class="slider-img-url" placeholder="Subtitle" value="${it.sub||''}" id="promSub${i}"><button class="slider-img-del" onclick="removePromiseRow(${i})">✕</button></div>`).join(''); } }
-async function handleSpotUpload(input, i){ const file = input.files[0]; if(!file) return; const spinner = document.getElementById(`spotSpin${i}`); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'spotlight'); promoData.spotlight[i].img = url; document.getElementById('spotImg'+i).value = url; document.querySelector(`#spotlightAdminList .slider-img-row:nth-child(${i+1}) .slider-img-preview`).innerHTML = `<img src="${url}">`; showToast('Image uploaded'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
+async function handleSpotUpload(input, i){ const file = input.files[0]; if(!file) return; const spinner = document.getElementById(`spotSpin${i}`); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'spotlight'); promoData.spotlight[i].img = url; document.getElementById('spotImg'+i).value = url; document.querySelector(`#spotlightAdminList .slider-img-row:nth-child(${i+1}) .slider-img-preview`).innerHTML = `<img src="${url}">`; showToast('Image uploaded to Firebase'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
 function addSpotlightRow(){ if(promoData.spotlight.length >= 4){ showToast('Max 4 cards'); return; } promoData.spotlight.push({img:'',cat:'',name:'',filter:'All'}); renderPromoAdmin(); }
 function removeSpotRow(i){ promoData.spotlight.splice(i,1); renderPromoAdmin(); }
 function addPromiseRow(){ if(promoData.promise.length >= 4){ showToast('Max 4 items'); return; } promoData.promise.push({icon:'',title:'',sub:''}); renderPromoAdmin(); }
@@ -555,7 +556,7 @@ function renderHome(){ let best=products.slice().sort((a,b)=>b.reviews-a.reviews
 function renderShop(){ let filtered=products; if(currentFilter==='New') filtered=products.filter(p=>p.badge==='new'); else if(currentFilter==='search' && searchQuery) filtered=products.filter(p=>p.name.toLowerCase().includes(searchQuery) || p.brand.toLowerCase().includes(searchQuery) || p.cat.toLowerCase().includes(searchQuery)); else if(currentFilter!=='All' && currentFilter!=='search') filtered=products.filter(p=>p.cat===currentFilter); let grid=document.getElementById('shop-grid'); if(!filtered.length){ grid.innerHTML=''; document.getElementById('no-results').style.display='block'; }else{ grid.innerHTML=filtered.map(cardHTML).join(''); document.getElementById('no-results').style.display='none'; } document.getElementById('prod-count').innerText=filtered.length+' items'; }
 
 function addMainMedia(url='', type='image', isPrimary=false){ let div = document.createElement('div'); div.className = 'slider-img-row'; div.innerHTML = `<select class="admin-select" style="width:auto; margin:0;"><option value="image" ${type==='image'?'selected':''}>Image</option><option value="video" ${type==='video'?'selected':''}>Video</option></select><input class="slider-img-url" placeholder="Media URL" value="${url}" id="mmUrl_${Date.now()}"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*,video/*" onchange="handleMainMediaUpload(this)"></label><span class="upload-spinner" style="font-size:11px; color:#888;"></span><div class="slider-img-preview" style="width:52px;height:52px;">${url && url.startsWith('http')?(type==='video'?'🎬':`<img src="${url}">`):'—'}</div><div class="primary-media-check"><input type="radio" name="primaryMedia" ${isPrimary?'checked':''} class="primary-media-radio"><label>Primary</label></div><button class="slider-img-del" onclick="this.parentElement.remove()">✕</button>`; document.getElementById('mainMediaList').appendChild(div); }
-async function handleMainMediaUpload(input){ const file = input.files[0]; if(!file) return; const row = input.closest('.slider-img-row'); const urlInput = row.querySelector('.slider-img-url'); const preview = row.querySelector('.slider-img-preview'); const spinner = row.querySelector('.upload-spinner'); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'product_media'); urlInput.value = url; if(file.type.startsWith('video')) preview.innerHTML = '🎬'; else preview.innerHTML = `<img src="${url}">`; showToast('Media uploaded'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
+async function handleMainMediaUpload(input){ const file = input.files[0]; if(!file) return; const row = input.closest('.slider-img-row'); const urlInput = row.querySelector('.slider-img-url'); const preview = row.querySelector('.slider-img-preview'); const spinner = row.querySelector('.upload-spinner'); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'product_media'); urlInput.value = url; if(file.type.startsWith('video')) preview.innerHTML = '🎬'; else preview.innerHTML = `<img src="${url}">`; showToast('Media uploaded to Firebase'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
 function getMainMedia(){ let media = []; document.querySelectorAll('#mainMediaList .slider-img-row').forEach(row => { let url = row.querySelector('.slider-img-url').value.trim(); if(url){ media.push({ url, type: row.querySelector('select').value, isPrimary: row.querySelector('.primary-media-radio').checked }); } }); return media; }
 function addColorGroup(colorCode='#000000', colorName='', images=[], primaryIdx=0){ let groupId = 'cg_' + Date.now(); let imagesHtml = ''; if(images.length){ images.forEach((img, idx) => { imagesHtml += `<div class="slider-img-row" style="margin-bottom:5px;"><input type="text" placeholder="Image URL" value="${img}" class="slider-img-url" style="flex:1;"><div class="slider-img-preview" style="width:40px;height:40px;">${img && img.startsWith('http')?`<img src="${img}">`:'—'}</div><div class="primary-check"><input type="radio" name="primary_${groupId}" value="${idx}" ${idx===primaryIdx?'checked':''} class="primary-radio"><label>Primary</label></div><button class="slider-img-del" onclick="this.parentElement.remove()">✕</button></div>`; }); } else { imagesHtml = `<div class="slider-img-row" style="margin-bottom:5px;"><input type="text" placeholder="Image URL" class="slider-img-url" style="flex:1;"><div class="slider-img-preview" style="width:40px;height:40px;">—</div><div class="primary-check"><input type="radio" name="primary_${groupId}" value="0" class="primary-radio" checked><label>Primary</label></div><button class="slider-img-del" onclick="this.parentElement.remove()">✕</button></div>`; } let div = document.createElement('div'); div.className = 'color-group'; div.style.border='1px solid #E0DDD8'; div.style.padding='12px'; div.style.marginBottom='15px'; div.style.borderRadius='8px'; div.innerHTML = `<div class="color-header" style="display:flex; gap:10px; margin-bottom:10px;"><input type="color" value="${colorCode}" class="color-code-input"><input type="text" placeholder="Color name" value="${colorName}" class="color-name-input" style="flex:1;"><button onclick="this.closest('.color-group').remove()" style="background:#fee; border:none; padding:5px 10px; border-radius:6px;">Remove Color</button></div><div class="color-images-list">${imagesHtml}</div><button class="slider-add-btn" style="margin-top:10px;" onclick="addImageToColorGroup(this)">+ Add Image</button>`; document.getElementById('colorList').appendChild(div); }
 function addImageToColorGroup(btn){ let container = btn.previousElementSibling; let groupId = btn.closest('.color-group').querySelector('.color-name-input').name || 'cg'; let idx = container.children.length; let div = document.createElement('div'); div.className = 'slider-img-row'; div.style.marginBottom='5px'; div.innerHTML = `<input type="text" placeholder="Image URL" class="slider-img-url" style="flex:1;"><div class="slider-img-preview" style="width:40px;height:40px;">—</div><div class="primary-check"><input type="radio" name="primary_${groupId}" value="${idx}" class="primary-radio"><label>Primary</label></div><button class="slider-img-del" onclick="this.parentElement.remove()">✕</button>`; container.appendChild(div); }
@@ -578,7 +579,7 @@ window.addEventListener('hashchange',handleHash);
 function closeWAModal(e){ if(e?.target?.id==='waOverlay') closeWAModalBtn(); }
 function closeWAModalBtn(){ document.getElementById('waOverlay').classList.remove('open'); }
 function updateFbPreview(url){ let img = document.getElementById('fbImgPrevImg'); if(img){ img.src=url; img.style.display=url?'block':'none'; } }
-async function handleFbUpload(input){ const file = input.files[0]; if(!file) return; const spinner = document.getElementById('fbUploadSpinner'); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'feature_banners'); document.getElementById('fb-img').value = url; updateFbPreview(url); showToast('Feature banner image uploaded'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
+async function handleFbUpload(input){ const file = input.files[0]; if(!file) return; const spinner = document.getElementById('fbUploadSpinner'); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'feature_banners'); document.getElementById('fb-img').value = url; updateFbPreview(url); showToast('Feature banner image uploaded to Firebase'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
 
 // Load saved data from localStorage on startup
 function loadSavedData() {

@@ -996,7 +996,17 @@ async function loadProducts() {
   renderAll();
 
   // 2. Attach real-time listeners so ALL visitors see updates instantly
-  fsListen('products', (val) => { if(val) { products = val; saveToLocal('products', val); renderAll(); } });
+  fsListen('products', (val) => {
+    if (val) {
+      // Only accept Firestore data if it has at least as many products as we know about
+      // This prevents a stale/lagging Firestore snapshot from wiping a just-saved product
+      if (val.length >= products.length) {
+        products = val;
+        saveToLocal('products', val);
+        renderAll();
+      }
+    }
+  });
   fsListen('heroImages', (val) => { if(val) { heroImages = val; saveToLocal('heroImages', val); renderHeroSlider(); renderSliderAdmin(); } });
   fsListen('featureBanner', (val) => { if(val) { featureBanner = val; saveToLocal('featureBanner', val); renderFeatureBanner(); } });
   fsListen('spotlightCards', (val) => { if(val) { spotlightCards = val; saveToLocal('spotlightCards', val); renderSpotlight(); renderSpotlightAdmin(); } });
@@ -1056,17 +1066,20 @@ function renderPromiseStrip() { document.getElementById('promiseInner').innerHTM
 function renderAnnouncementBar() { let bar = document.getElementById('topbarTrack'); let items = announcements.length ? announcements : [{text:'accessories.pk'}]; let html = [...items,...items].map(it=>`<span class="topbar-item">${it.text}</span><span class="topbar-sep">·</span>`).join(''); bar.innerHTML = html; }
 
 function renderHome() {
-  // Sort by reviews desc; if all have 0 reviews, sort newest first by id
-  let sorted = products.slice().sort((a,b) => {
+  // BESTSELLERS: top by reviews, fall back to newest by id
+  let byReviews = products.slice().sort((a,b) => {
     let diff = (b.reviews||0) - (a.reviews||0);
     return diff !== 0 ? diff : b.id - a.id;
-  });
-  let best = sorted.slice(0, 8);
-  let newArr = products.filter(p=>p.badge==='new');
-  // If no new-badge products, just show 4 most recent
-  if (!newArr.length) newArr = products.slice().sort((a,b)=>b.id-a.id).slice(0,4);
-  document.getElementById('homeGrid').innerHTML = best.length ? best.map(cardHTML).join('') : '<div style="padding:40px;color:var(--text-muted);text-align:center;">No products yet. Add some in Admin.</div>';
-  document.getElementById('newGrid').innerHTML = newArr.map(cardHTML).join('');
+  }).slice(0, 8);
+
+  // NEW ARRIVALS: badge=new first, then fill with newest products by id
+  let badgedNew = products.filter(p => p.badge === 'new');
+  let recentAll = products.slice().sort((a,b) => b.id - a.id).slice(0, 8);
+  let newArr = badgedNew.length ? badgedNew : recentAll;
+
+  let emptyMsg = '<div style="padding:40px;color:var(--text-muted);text-align:center;">No products yet — add some in Admin.</div>';
+  document.getElementById('homeGrid').innerHTML = byReviews.length ? byReviews.map(cardHTML).join('') : emptyMsg;
+  document.getElementById('newGrid').innerHTML  = newArr.length   ? newArr.map(cardHTML).join('')   : '';
 }
 function renderShop() { let filtered = products; if (currentFilter === 'New') filtered = products.filter(p=>p.badge==='new'); else if (currentFilter === 'search' && searchQuery) filtered = products.filter(p=>p.name.toLowerCase().includes(searchQuery)||p.brand.toLowerCase().includes(searchQuery)); else if (currentFilter !== 'All' && currentFilter !== 'search') filtered = products.filter(p=>p.cat === currentFilter); document.getElementById('shopGrid').innerHTML = filtered.map(cardHTML).join(''); document.getElementById('noResults').style.display = filtered.length ? 'none' : 'block'; document.getElementById('prodCount').innerHTML = filtered.length + ' items'; }
 function renderWish() { let items = products.filter(p=>wishlist.has(p.id)); document.getElementById('wishContent').innerHTML = items.length ? `<div class="products-grid">${items.map(cardHTML).join('')}</div>` : '<div style="text-align:center; padding:60px;">❤️ Wishlist is empty</div>'; }
@@ -1292,7 +1305,12 @@ function getSpecs() { let specs = []; document.querySelectorAll('#specsList .sli
 
 function editProduct(id) { let p = products.find(x=>x.id===id); if(!p) return; editingProductId = p.id; document.getElementById('prodName').value = p.name; document.getElementById('prodBrand').value = p.brand; document.getElementById('prodCat').value = p.cat; document.getElementById('prodPrice').value = p.price; document.getElementById('prodBadge').value = p.badge||''; document.getElementById('prodDesc').value = p.desc||''; document.getElementById('productMediaList').innerHTML = ''; (p.images||[]).forEach(img=>addProductMedia(img)); document.getElementById('specsList').innerHTML = ''; (p.specs||[]).forEach(s=>addSpecRow(s[0],s[1])); colorVariantsData = (p.colors||[]).map(c=>({name:c.name||'',hex:c.hex||'#888888',images:[...(c.images||[])]})); renderColorVariantsAdmin(); document.getElementById('formTitle').innerText = 'Edit Product'; document.getElementById('cancelEditBtn').style.display = 'inline-block'; }
 function cancelProductEdit() { editingProductId = null; document.getElementById('prodName').value = ''; document.getElementById('prodBrand').value = ''; document.getElementById('prodCat').value = ''; document.getElementById('prodPrice').value = ''; document.getElementById('prodBadge').value = ''; document.getElementById('prodDesc').value = ''; document.getElementById('productMediaList').innerHTML = ''; document.getElementById('specsList').innerHTML = ''; colorVariantsData = []; renderColorVariantsAdmin(); document.getElementById('formTitle').innerText = 'Add New Product'; document.getElementById('cancelEditBtn').style.display = 'none'; }
-async function saveProduct() { let name = document.getElementById('prodName').value.trim(); if(!name) { showToast('Product name required'); return; } let colors = getColorVariants(); let images = getProductImages(); if(images.length===0 && colors.length>0 && colors[0].images.length>0) images = [colors[0].images[0]]; if(images.length===0) images = ['https://placehold.co/600x600/1a1a1a/ff6b6b?text=Product']; let newProduct = { id: editingProductId || Date.now(), name: name, brand: document.getElementById('prodBrand').value, cat: document.getElementById('prodCat').value, price: parseInt(document.getElementById('prodPrice').value), badge: document.getElementById('prodBadge').value || null, desc: document.getElementById('prodDesc').value, images: images, colors: colors, specs: getSpecs(), rating: 4.5, reviews: 0 }; if(editingProductId) { let idx = products.findIndex(p=>p.id===editingProductId); if(idx!==-1) products[idx] = newProduct; } else products.push(newProduct); await fsSave('products', products); cancelProductEdit(); renderAdminProductList(); renderHome(); renderShop(); showToast('Product saved'); }
+async function saveProduct() { let name = document.getElementById('prodName').value.trim(); if(!name) { showToast('Product name required'); return; } let colors = getColorVariants(); let images = getProductImages(); if(images.length===0 && colors.length>0 && colors[0].images.length>0) images = [colors[0].images[0]]; if(images.length===0) images = ['https://placehold.co/600x600/1a1a1a/ff6b6b?text=Product']; let newProduct = { id: editingProductId || Date.now(), name: name, brand: document.getElementById('prodBrand').value, cat: document.getElementById('prodCat').value, price: parseInt(document.getElementById('prodPrice').value), badge: document.getElementById('prodBadge').value || null, desc: document.getElementById('prodDesc').value, images: images, colors: colors, specs: getSpecs(), rating: 4.5, reviews: 0 }; if(editingProductId) { let idx = products.findIndex(p=>p.id===editingProductId); if(idx!==-1) products[idx] = newProduct; } else products.push(newProduct); // Always save to localStorage immediately so product appears even if Firebase lags
+saveToLocal('products', products);
+await fsSave('products', products);
+cancelProductEdit();
+renderAll();
+showToast('Product saved ✓'); }
 async function deleteProduct(id) { if(!confirm('Delete this product?')) return; products = products.filter(p=>p.id!==id); await fsSave('products', products); renderAdminProductList(); renderHome(); renderShop(); showToast('Deleted'); }
 
 function switchAdminTab(tab) { document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active')); if(tab==='media') { document.getElementById('adminTabMedia').style.display = 'block'; document.getElementById('adminTabProducts').style.display = 'none'; document.querySelector('.admin-tab:first-child').classList.add('active'); } else { document.getElementById('adminTabMedia').style.display = 'none'; document.getElementById('adminTabProducts').style.display = 'block'; document.querySelector('.admin-tab:last-child').classList.add('active'); renderAdminProductList(); } }

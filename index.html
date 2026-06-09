@@ -48,24 +48,29 @@ header { position:sticky; top:0; z-index:200; background:#fff; border-bottom:1px
 .icon-btn:hover { background:#FAF8F5; border-color:#C8C4BD; }
 .badge, .wish-badge { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#C0392B; color:#fff; font-size:10px; font-weight:700; margin-left:4px; }
 .wish-badge { display:none; }
-.desktop-nav-wrapper { background:#FAF8F5; border-top:1px solid #E0DDD8; border-bottom:1px solid #E0DDD8; position:relative; z-index:150; }
-.desktop-nav { max-width:1200px; margin:0 auto; padding:0 20px; display:flex; gap:4px; overflow-x:auto; }
+.desktop-nav-wrapper { background:#FFFFFF; border-top:1px solid #E0DDD8; border-bottom:1px solid #E0DDD8; position:relative; z-index:150; }
+.desktop-nav { max-width:1200px; margin:0 auto; padding:0 20px; display:flex; gap:0; overflow-x:auto; scrollbar-width:none; }
+.desktop-nav::-webkit-scrollbar { display:none; }
 .nav-item-wrap { position:relative; display:inline-flex; }
-.desktop-nav-btn { padding:12px 18px; background:none; border:none; font-size:13px; font-weight:500; color:#5A5A5A; cursor:pointer; white-space:nowrap; transition:all 0.2s; border-bottom:2px solid transparent; }
-.desktop-nav-btn:hover { color:#1C1C1C; border-bottom-color:#C0392B; }
-.nav-dropdown { position:absolute; top:100%; left:50%; transform:translateX(-50%); min-width:240px; background:#fff; border:1px solid #E0DDD8; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.13); padding:8px 0; z-index:300; opacity:0; pointer-events:none; transform:translateX(-50%) translateY(6px); transition:opacity 0.18s ease, transform 0.18s ease; }
-.nav-item-wrap:hover .nav-dropdown { opacity:1; pointer-events:all; transform:translateX(-50%) translateY(0); }
-.nav-dropdown::before { content:''; position:absolute; top:-7px; left:50%; transform:translateX(-50%); width:13px; height:13px; background:#fff; border-left:1px solid #E0DDD8; border-top:1px solid #E0DDD8; transform:translateX(-50%) rotate(45deg); }
-.nd-header { padding:10px 18px 6px; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#999; border-bottom:1px solid #F0EDE8; margin-bottom:4px; }
-.nd-item { display:flex; align-items:center; gap:12px; padding:9px 18px; cursor:pointer; transition:background 0.15s; text-decoration:none; color:#1C1C1C; }
-.nd-item:hover { background:#FAF8F5; color:#C0392B; }
-.nd-item .nd-icon { font-size:18px; width:28px; text-align:center; }
-.nd-item .nd-label { font-size:13px; font-weight:500; }
-.nd-item .nd-sub { font-size:11px; color:#888; margin-top:1px; }
-.nd-item-text { display:flex; flex-direction:column; }
-.nd-footer { padding:8px 18px 4px; border-top:1px solid #F0EDE8; margin-top:4px; }
-.nd-footer-btn { display:block; text-align:center; font-size:12px; font-weight:700; color:#C0392B; cursor:pointer; padding:6px; border-radius:8px; transition:background 0.15s; }
-.nd-footer-btn:hover { background:#FFF0EE; }
+.desktop-nav-btn {
+  position:relative; padding:14px 20px; background:none; border:none;
+  font-size:13px; font-weight:500; color:#5A5A5A; cursor:pointer;
+  white-space:nowrap; transition:all 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  border-bottom:2px solid transparent; letter-spacing:0.1px;
+}
+.desktop-nav-btn::after {
+  content:''; position:absolute; bottom:-1px; left:50%; right:50%;
+  height:2px; background:#C0392B; transition:all 0.22s ease; border-radius:2px;
+}
+.desktop-nav-btn:hover {
+  color:#C0392B; background:#FFF5F4;
+  transform:translateY(-2px); border-radius:8px 8px 0 0;
+}
+.desktop-nav-btn:hover::after { left:12px; right:12px; }
+.desktop-nav-btn.active { color:#C0392B; font-weight:700; }
+.desktop-nav-btn.active::after { left:12px; right:12px; }
+.nav-cat-icon { font-size:15px; margin-right:5px; display:inline-block; transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1); }
+.desktop-nav-btn:hover .nav-cat-icon { transform:scale(1.35) rotate(-8deg); }
 .page { display:none; }
 .page.active { display:block; }
 .hero { position:relative; width:100%; background:#111; overflow:hidden; border-bottom:1px solid #E0DDD8; }
@@ -243,6 +248,8 @@ header { position:sticky; top:0; z-index:200; background:#fff; border-bottom:1px
 footer { background:#1C1C1C; color:rgba(255,255,255,0.7); padding:48px 20px 40px; margin-top:40px; }
 .footer-inner { max-width:1200px; margin:0 auto; text-align:center; }
 .footer-logo { font-family:'DM Serif Display',serif; font-size:20px; font-weight:400; margin-bottom:12px; color:#fff; letter-spacing:-0.3px; }
+.loading-spinner { display:inline-block; width:16px; height:16px; border:2px solid #ccc; border-top-color:#C0392B; border-radius:50%; animation:spin 0.6s linear infinite; margin-left:8px; }
+@keyframes spin { to { transform:rotate(360deg); } }
 </style>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -253,28 +260,31 @@ footer { background:#1C1C1C; color:rgba(255,255,255,0.7); padding:48px 20px 40px
     apiKey: "AIzaSyDV0vixhWwV8IsPgOBvOHlW2YwyoGESrh8",
     authDomain: "accessories-pk.firebaseapp.com",
     projectId: "accessories-pk",
-    storageBucket: "accessories-pk.firebasestorage.app",
+    storageBucket: "accessories-pk.appspot.com",
     messagingSenderId: "273150355491",
     appId: "1:273150355491:web:4d6eebd5d71d45acb4e996"
   };
   
   let fbReady = false;
   let db = null;
+  let storage = null;
   
   try {
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
+    storage = firebase.storage().ref();
+    
     db.collection('siteSettings').doc('test').get().then(() => {
       fbReady = true;
       const statusEl = document.getElementById('fbStatus');
       if (statusEl) statusEl.innerHTML = '✓ Firebase Connected';
-      window._fb = { db, col: db.collection('products'), storage: firebase.storage().ref() };
+      window._fb = { db, col: db.collection('products'), storage: storage };
       window._fbReady = true;
       loadAllData();
     }).catch(err => {
       console.error('Firestore error:', err);
       const statusEl = document.getElementById('fbStatus');
-      if (statusEl) statusEl.innerHTML = '⚠️ Offline Mode';
+      if (statusEl) statusEl.innerHTML = '⚠️ Offline Mode (Using Local Storage)';
       fbReady = false;
       window._fbReady = false;
       loadAllData();
@@ -282,13 +292,63 @@ footer { background:#1C1C1C; color:rgba(255,255,255,0.7); padding:48px 20px 40px
   } catch(e) { 
     console.error('Firebase init error:', e);
     const statusEl = document.getElementById('fbStatus');
-    if (statusEl) statusEl.innerHTML = '⚠️ Offline Mode';
+    if (statusEl) statusEl.innerHTML = '⚠️ Offline Mode (Using Local Storage)';
     fbReady = false;
     window._fbReady = false;
     loadAllData();
   }
   
-  function loadAllData() { loadProductsFromFirebase(); loadSliderImages(); loadPromoSections(); loadAnnouncements(); }
+  // Save/load to localStorage as fallback
+  function saveToLocalStorage(key, data) {
+    localStorage.setItem(`apk_${key}`, JSON.stringify(data));
+  }
+  
+  function loadFromLocalStorage(key, defaultValue) {
+    const saved = localStorage.getItem(`apk_${key}`);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch(e) { return defaultValue; }
+    }
+    return defaultValue;
+  }
+  
+  async function uploadImageToStorage(file, folderPath) {
+    // If not connected to Firebase, return base64 data URL (works locally)
+    if (!window._fbReady) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    }
+    try {
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filename = timestamp + '_' + Math.random().toString(36).slice(2) + '_' + safeName;
+      // Always create a fresh storage ref — avoids stale reference bugs
+      const fileRef = firebase.storage().ref(folderPath + '/' + filename);
+      const snapshot = await fileRef.put(file);
+      const url = await snapshot.ref.getDownloadURL();
+      return url;
+    } catch(e) {
+      console.error('Storage upload error:', e);
+      showToast('Firebase Storage error: ' + e.message + '. Showing local preview instead.');
+      // Fallback to base64 so the spinner clears and preview still shows
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = ev => resolve(ev.target.result);
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+  
+  function loadAllData() { 
+    loadProductsFromFirebase(); 
+    loadSliderImages(); 
+    loadPromoSections(); 
+    loadAnnouncements(); 
+  }
   
   function loadProductsFromFirebase() {
     if (window._fbReady && window._fb.col) {
@@ -296,13 +356,29 @@ footer { background:#1C1C1C; color:rgba(255,255,255,0.7); padding:48px 20px 40px
         if (!snap.empty) {
           products = [];
           snap.forEach(doc => { let data = doc.data(); data._docId = doc.id; if (!data.id) data.id = parseInt(doc.id.slice(-6)) || Date.now(); products.push(data); });
-        } else if (products.length === 0) { loadProductsFallback(); }
+          saveToLocalStorage('products', products);
+        } else if (products.length === 0) { 
+          loadProductsFallback(); 
+        }
         renderHome(); if (activePage === 'shop') renderShop(); renderAdminList(); updateBadges();
       }, err => console.error('Snapshot error:', err));
-    } else { loadProductsFallback(); }
+    } else { 
+      loadProductsFallback(); 
+    }
   }
   
-  function loadProductsFallback() { if (products.length === 0) products.push(...defaultProducts); renderHome(); renderAdminList(); }
+  function loadProductsFallback() { 
+    if (products.length === 0) {
+      const saved = loadFromLocalStorage('products', null);
+      if (saved && saved.length) {
+        products = saved;
+      } else {
+        products.push(...defaultProducts);
+      }
+    }
+    renderHome(); 
+    renderAdminList(); 
+  }
 </script>
 </head>
 <body>
@@ -322,41 +398,17 @@ footer { background:#1C1C1C; color:rgba(255,255,255,0.7); padding:48px 20px 40px
     </div>
   </div>
   <div class="desktop-nav-wrapper">
-    <nav class="desktop-nav">
-      <button class="desktop-nav-btn" onclick="goHome()">Home</button>
-      <button class="desktop-nav-btn" onclick="goShop()">Shop All</button>
-      <div class="nav-item-wrap">
-        <button class="desktop-nav-btn">Earbuds ▾</button>
-        <div class="nav-dropdown"><div class="nd-header">Earbuds</div><div class="nd-item" onclick="filterCat('Earbuds');goShop()"><span class="nd-icon">🎧</span><div class="nd-item-text"><span class="nd-label">All Earbuds</span><span class="nd-sub">Browse full range</span></div></div><div class="nd-item" onclick="filterCat('Earbuds');goShop()"><span class="nd-icon">📡</span><div class="nd-item-text"><span class="nd-label">True Wireless</span><span class="nd-sub">No cables, pure freedom</span></div></div><div class="nd-footer"><span class="nd-footer-btn" onclick="filterCat('Earbuds');goShop()">Shop All Earbuds →</span></div></div>
-      </div>
-      <div class="nav-item-wrap">
-        <button class="desktop-nav-btn">Headphones ▾</button>
-        <div class="nav-dropdown"><div class="nd-header">Headphones</div><div class="nd-item" onclick="filterCat('Headphones');goShop()"><span class="nd-icon">🎵</span><div class="nd-item-text"><span class="nd-label">All Headphones</span><span class="nd-sub">Browse full range</span></div></div><div class="nd-item" onclick="filterCat('Headphones');goShop()"><span class="nd-icon">🔕</span><div class="nd-item-text"><span class="nd-label">Over-Ear ANC</span><span class="nd-sub">Studio-grade noise cancellation</span></div></div><div class="nd-footer"><span class="nd-footer-btn" onclick="filterCat('Headphones');goShop()">Shop All Headphones →</span></div></div>
-      </div>
-      <div class="nav-item-wrap">
-        <button class="desktop-nav-btn">Speakers ▾</button>
-        <div class="nav-dropdown"><div class="nd-header">Speakers</div><div class="nd-item" onclick="filterCat('Speakers');goShop()"><span class="nd-icon">🔊</span><div class="nd-item-text"><span class="nd-label">All Speakers</span><span class="nd-sub">Browse full range</span></div></div><div class="nd-item" onclick="filterCat('Speakers');goShop()"><span class="nd-icon">🌊</span><div class="nd-item-text"><span class="nd-label">Portable Bluetooth</span><span class="nd-sub">Take music anywhere</span></div></div><div class="nd-footer"><span class="nd-footer-btn" onclick="filterCat('Speakers');goShop()">Shop All Speakers →</span></div></div>
-      </div>
-      <div class="nav-item-wrap">
-        <button class="desktop-nav-btn">Power Banks ▾</button>
-        <div class="nav-dropdown"><div class="nd-header">Power Banks</div><div class="nd-item" onclick="filterCat('Power Banks');goShop()"><span class="nd-icon">🔋</span><div class="nd-item-text"><span class="nd-label">All Power Banks</span><span class="nd-sub">Browse full range</span></div></div><div class="nd-item" onclick="filterCat('Power Banks');goShop()"><span class="nd-icon">⚡</span><div class="nd-item-text"><span class="nd-label">Fast Charging</span><span class="nd-sub">65W+ rapid charge</span></div></div><div class="nd-footer"><span class="nd-footer-btn" onclick="filterCat('Power Banks');goShop()">Shop All Power Banks →</span></div></div>
-      </div>
-      <div class="nav-item-wrap">
-        <button class="desktop-nav-btn">Chargers ▾</button>
-        <div class="nav-dropdown"><div class="nd-header">Chargers</div><div class="nd-item" onclick="filterCat('Chargers');goShop()"><span class="nd-icon">🔌</span><div class="nd-item-text"><span class="nd-label">All Chargers</span><span class="nd-sub">Browse full range</span></div></div><div class="nd-item" onclick="filterCat('Chargers');goShop()"><span class="nd-icon">⚡</span><div class="nd-item-text"><span class="nd-label">Fast Wall Chargers</span><span class="nd-sub">USB-C 25W–65W</span></div></div><div class="nd-footer"><span class="nd-footer-btn" onclick="filterCat('Chargers');goShop()">Shop All Chargers →</span></div></div>
-      </div>
-      <div class="nav-item-wrap">
-        <button class="desktop-nav-btn">Mics ▾</button>
-        <div class="nav-dropdown"><div class="nd-header">Microphones</div><div class="nd-item" onclick="filterCat('Mics');goShop()"><span class="nd-icon">🎙️</span><div class="nd-item-text"><span class="nd-label">All Microphones</span><span class="nd-sub">Browse full range</span></div></div><div class="nd-item" onclick="filterCat('Mics');goShop()"><span class="nd-icon">📹</span><div class="nd-item-text"><span class="nd-label">Streaming Mics</span><span class="nd-sub">For content creators</span></div></div><div class="nd-footer"><span class="nd-footer-btn" onclick="filterCat('Mics');goShop()">Shop All Mics →</span></div></div>
-      </div>
-      <div class="nav-item-wrap">
-        <button class="desktop-nav-btn">Smartwatches ▾</button>
-        <div class="nav-dropdown"><div class="nd-header">Smartwatches</div><div class="nd-item" onclick="filterCat('Smartwatches');goShop()"><span class="nd-icon">⌚</span><div class="nd-item-text"><span class="nd-label">All Smartwatches</span><span class="nd-sub">Browse full range</span></div></div><div class="nd-item" onclick="filterCat('Smartwatches');goShop()"><span class="nd-icon">❤️</span><div class="nd-item-text"><span class="nd-label">Health & Fitness</span><span class="nd-sub">Track every step</span></div></div><div class="nd-footer"><span class="nd-footer-btn" onclick="filterCat('Smartwatches');goShop()">Shop All Smartwatches →</span></div></div>
-      </div>
-      <div class="nav-item-wrap">
-        <button class="desktop-nav-btn">Cables ▾</button>
-        <div class="nav-dropdown"><div class="nd-header">Cables</div><div class="nd-item" onclick="filterCat('Cables');goShop()"><span class="nd-icon">🔗</span><div class="nd-item-text"><span class="nd-label">All Cables</span><span class="nd-sub">Browse full range</span></div></div><div class="nd-item" onclick="filterCat('Cables');goShop()"><span class="nd-icon">⚡</span><div class="nd-item-text"><span class="nd-label">USB-C</span><span class="nd-sub">Fast charge & data</span></div></div><div class="nd-footer"><span class="nd-footer-btn" onclick="filterCat('Cables');goShop()">Shop All Cables →</span></div></div>
-      </div>
+    <nav class="desktop-nav" id="mainDesktopNav">
+      <button class="desktop-nav-btn" id="navHome" onclick="setActiveNav(this);goHome()">🏠 Home</button>
+      <button class="desktop-nav-btn" id="navAll" onclick="setActiveNav(this);filterCat('All');goShop()">✨ Shop All</button>
+      <button class="desktop-nav-btn" onclick="setActiveNav(this);filterCat('Earbuds');goShop()"><span class="nav-cat-icon">🎧</span>Earbuds</button>
+      <button class="desktop-nav-btn" onclick="setActiveNav(this);filterCat('Headphones');goShop()"><span class="nav-cat-icon">🎵</span>Headphones</button>
+      <button class="desktop-nav-btn" onclick="setActiveNav(this);filterCat('Speakers');goShop()"><span class="nav-cat-icon">🔊</span>Speakers</button>
+      <button class="desktop-nav-btn" onclick="setActiveNav(this);filterCat('Power Banks');goShop()"><span class="nav-cat-icon">🔋</span>Power Banks</button>
+      <button class="desktop-nav-btn" onclick="setActiveNav(this);filterCat('Chargers');goShop()"><span class="nav-cat-icon">🔌</span>Chargers</button>
+      <button class="desktop-nav-btn" onclick="setActiveNav(this);filterCat('Mics');goShop()"><span class="nav-cat-icon">🎙️</span>Mics</button>
+      <button class="desktop-nav-btn" onclick="setActiveNav(this);filterCat('Smartwatches');goShop()"><span class="nav-cat-icon">⌚</span>Smartwatches</button>
+      <button class="desktop-nav-btn" onclick="setActiveNav(this);filterCat('Cables');goShop()"><span class="nav-cat-icon">🔗</span>Cables</button>
     </nav>
   </div>
 </header>
@@ -385,13 +437,12 @@ footer { background:#1C1C1C; color:rgba(255,255,255,0.7); padding:48px 20px 40px
 <div class="admin-card" style="margin-bottom:20px;"><div class="admin-card-header">Announcement Bar</div><div class="admin-card-body"><div id="announcementAdminList"></div><button class="slider-add-btn" onclick="addAnnouncementRow()">+ Add Message</button><div style="margin-top:14px;"><button class="btn-primary" onclick="saveAnnouncements()" style="border-radius:30px;">Save Bar</button></div></div></div>
 <div class="admin-card" style="margin-bottom:20px;"><div class="admin-card-header">Hero Banner Images</div><div class="admin-card-body"><div id="sliderAdminList"></div><button class="slider-add-btn" onclick="addSliderRow()">+ Add Banner Image</button><div style="margin-top:14px;"><button class="btn-primary" onclick="saveSliderImages()" style="border-radius:30px;">Save Banners</button></div></div></div>
 <div class="admin-stats"><div class="stat-card"><div class="stat-num" id="stat-total">0</div><div>Total Products</div></div><div class="stat-card"><div class="stat-num" id="stat-new">0</div><div>New Arrivals</div></div><div class="stat-card"><div class="stat-num" id="stat-hot">0</div><div>Hot Items</div></div></div>
-<div class="admin-card" style="margin-bottom:20px;"><div class="admin-card-header">Homepage Promo Sections</div><div class="admin-card-body"><div style="margin-bottom:20px;"><div style="font-weight:600;margin-bottom:10px;">Feature Banner</div><div class="promo-admin-row"><label>Background Image</label><div class="promo-input-group"><div class="promo-img-preview" id="fbImgPrev"><img id="fbImgPrevImg" src="" style="display:none"></div><input class="admin-input" id="fb-img" placeholder="Image URL" oninput="updateFbPreview(this.value)"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*" onchange="handleFbUpload(this)"></label></div><label>Eyebrow Text</label><input class="admin-input" id="fb-eyebrow"><label>Headline</label><input class="admin-input" id="fb-heading"><label>Subtext</label><input class="admin-input" id="fb-sub"><label>Button Label</label><input class="admin-input" id="fb-btn"></div></div>
+<div class="admin-card" style="margin-bottom:20px;"><div class="admin-card-header">Homepage Promo Sections</div><div class="admin-card-body"><div style="margin-bottom:20px;"><div style="font-weight:600;margin-bottom:10px;">Feature Banner</div><div class="promo-admin-row"><label>Background Image</label><div class="promo-input-group"><div class="promo-img-preview" id="fbImgPrev"><img id="fbImgPrevImg" src="" style="display:none"></div><input class="admin-input" id="fb-img" placeholder="Image URL" oninput="updateFbPreview(this.value)"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*" onchange="handleFbUpload(this)"></label><span id="fbUploadSpinner" style="font-size:11px; color:#888;"></span></div><label>Eyebrow Text</label><input class="admin-input" id="fb-eyebrow"><label>Headline</label><input class="admin-input" id="fb-heading"><label>Subtext</label><input class="admin-input" id="fb-sub"><label>Button Label</label><input class="admin-input" id="fb-btn"></div></div>
 <div style="margin-bottom:20px;"><div style="font-weight:600;margin-bottom:10px;">Category Spotlight</div><div id="spotlightAdminList"></div><button class="slider-add-btn" onclick="addSpotlightRow()">+ Add Card</button></div>
 <div style="margin-bottom:20px;"><div style="font-weight:600;margin-bottom:10px;">Brand Promise Strip</div><div id="promiseAdminList"></div><button class="slider-add-btn" onclick="addPromiseRow()">+ Add Item</button></div>
 <button class="btn-primary" onclick="savePromoSections()" style="border-radius:30px;">Save Promo Sections</button></div></div>
 <div class="admin-layout"><div class="admin-card"><div class="admin-card-header" id="formCardTitle">Add New Product</div><div class="admin-card-body"><input id="f-name" placeholder="Product Name *" class="admin-input"><input id="f-brand" placeholder="Brand *" class="admin-input"><select id="f-cat" class="admin-select"><option value="">Select Category *</option><option>Earbuds</option><option>Headphones</option><option>Speakers</option><option>Power Banks</option><option>Chargers</option><option>Mics</option><option>Smartwatches</option><option>Cables</option></select><input id="f-price" type="number" placeholder="Price (Rs.) *" class="admin-input"><input id="f-emoji" placeholder="Default Emoji 🎧" class="admin-input"><select id="f-badge" class="admin-select"><option value="">No badge</option><option value="new">New Arrival</option><option value="hot">Hot</option><option value="gift">Free Gift Inside</option></select>
-<div class="admin-card-header" style="margin:10px 0 0 0; background:#FAF8F5; color:#1C1C1C;">Main Product Media</div>
-<div id="mainMediaList"></div><button class="slider-add-btn" onclick="addMainMedia()">+ Add Image/Video</button>
+<div class="admin-card-header" style="margin:10px 0 0 0; background:#FAF8F5; color:#1C1C1C;">Main Product Media</div><div id="mainMediaList"></div><button class="slider-add-btn" onclick="addMainMedia()">+ Add Image/Video</button>
 <div class="admin-card-header" style="margin:10px 0 0 0; background:#FAF8F5; color:#1C1C1C;">Color Variants</div><div id="colorList"></div><button class="slider-add-btn" onclick="addColorGroup()">+ Add Color Variant</button>
 <div class="admin-card-header" style="margin:10px 0 0 0; background:#FAF8F5; color:#1C1C1C;">Gift Items Included</div><div id="giftList"></div><button class="slider-add-btn" onclick="addGiftRow()">+ Add Gift</button>
 <textarea id="f-desc" placeholder="Product Description *" class="admin-textarea"></textarea><div id="specList"></div><button class="slider-add-btn" onclick="addSpecRow()">+ Add Specification</button>
@@ -410,17 +461,21 @@ let editingId = null;
 let selectedCity = 'karachi';
 let activePage = 'home';
 let searchQuery = '';
-const ADMIN_PASSWORD = 'momin2003';
+const ADMIN_PASSWORD = 'admin123';
 const WA_NUMBER = '923198604987';
 const DELIVERY_KARACHI = 200;
 const DELIVERY_OUTSIDE = 250;
 const FREE_SHIPPING_THRESHOLD = 4999;
 
-let announcementItems = [{ text:'🚚 Free Delivery in Karachi on orders over Rs. 4,999' },{ text:'💵 Cash on Delivery Available' },{ text:'↩ 7-Day Easy Returns — No Questions Asked' },{ text:'✓ 100% Genuine Products Guaranteed' },{ text:'📦 Nationwide Delivery in 1–3 Days' }];
-let heroImages = [{ url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1200&q=80', title: 'Premium Audio Experience' },{ url: 'https://images.unsplash.com/photo-1605464315542-bda3e2f4e605?w=1200&q=80', title: 'Power Your Day' },{ url: 'https://images.unsplash.com/photo-1589003077984-894e133ddfab?w=1200&q=80', title: 'Smart Living' }];
+let announcementItems = loadFromLocalStorage('announcements', [{ text:'🚚 Free Delivery in Karachi on orders over Rs. 4,999' },{ text:'💵 Cash on Delivery Available' },{ text:'↩ 7-Day Easy Returns' },{ text:'✓ 100% Genuine Products' },{ text:'📦 Nationwide Delivery 1–3 Days' }]);
+let heroImages = loadFromLocalStorage('heroImages', [{ url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1200&q=80', title: 'Premium Audio Experience' },{ url: 'https://images.unsplash.com/photo-1605464315542-bda3e2f4e605?w=1200&q=80', title: 'Power Your Day' },{ url: 'https://images.unsplash.com/photo-1589003077984-894e133ddfab?w=1200&q=80', title: 'Smart Living' }]);
 let heroIndex = 0, heroTimer = null;
-let promoData = { featureBanner: { img: 'https://images.unsplash.com/photo-1543512214-318c7553f230?w=1200&q=80', eyebrow: 'Limited Time Offer', heading: 'Sound That\nMoves You', sub: 'Premium audio gear starting from just Rs. 1,999', btn: 'Shop Now' }, spotlight: [{ img: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80', cat: 'Audio', name: 'Earbuds & Headphones', filter: 'Earbuds' },{ img: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&q=80', cat: 'Power', name: 'Power Banks', filter: 'Power Banks' },{ img: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&q=80', cat: 'Audio', name: 'Speakers', filter: 'Speakers' },{ img: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=600&q=80', cat: 'Essentials', name: 'Cables & Chargers', filter: 'Chargers' }], promise: [{ icon:'🚚', title:'Fast Delivery', sub:'Karachi same-day, nationwide 1–3 days' },{ icon:'💳', title:'Cash on Delivery', sub:'Pay when your order arrives' },{ icon:'↩', title:'7-Day Returns', sub:'Hassle-free return policy' },{ icon:'✓', title:'100% Genuine', sub:'Authentic products, every time' }] };
-const defaultProducts = [{ id:1, name:"AirBuds Pro Max", brand:"SoundX", cat:"Earbuds", price:2499, emoji:"🎧", badge:"hot", rating:4.8, reviews:312, desc:"Premium noise cancelling earbuds with 30hr battery life.", specs:[["Battery","30 hours"],["Bluetooth","5.3"]], gifts:["Charging Case","Ear Tips"], mainMedia:[{url:"https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80", type:"image", isPrimary:true}], colors:[] },{ id:2, name:"PowerVault 20K", brand:"Anker", cat:"Power Banks", price:3299, emoji:"🔋", badge:"new", rating:4.7, reviews:400, desc:"20000mAh fast charging power bank.", specs:[["Capacity","20000mAh"]], gifts:["Travel Pouch"], mainMedia:[{url:"https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&q=80", type:"image", isPrimary:true}], colors:[] },{ id:3, name:"BoomBox Mini", brand:"SoundX", cat:"Speakers", price:1899, emoji:"🔊", badge:"", rating:4.6, reviews:278, desc:"Portable Bluetooth speaker with 360° sound.", specs:[["Battery","12 hours"],["Bluetooth","5.0"]], gifts:[], mainMedia:[{url:"https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&q=80", type:"image", isPrimary:true}], colors:[] },{ id:4, name:"UltraCharge 65W", brand:"ChargePro", cat:"Chargers", price:1599, emoji:"⚡", badge:"gift", rating:4.9, reviews:567, desc:"65W GaN fast charger with 3 ports.", specs:[["Power","65W"],["Ports","3"]], gifts:["USB-C Cable"], mainMedia:[{url:"https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=600&q=80", type:"image", isPrimary:true}], colors:[] }];
+let promoData = loadFromLocalStorage('promoData', { 
+  featureBanner: { img: 'https://images.unsplash.com/photo-1543512214-318c7553f230?w=1200&q=80', eyebrow: 'Limited Time Offer', heading: 'Sound That\nMoves You', sub: 'Premium audio gear starting from just Rs. 1,999', btn: 'Shop Now' }, 
+  spotlight: [{ img: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80', cat: 'Audio', name: 'Earbuds & Headphones', filter: 'Earbuds' },{ img: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&q=80', cat: 'Power', name: 'Power Banks', filter: 'Power Banks' },{ img: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&q=80', cat: 'Audio', name: 'Speakers', filter: 'Speakers' },{ img: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=600&q=80', cat: 'Essentials', name: 'Cables & Chargers', filter: 'Chargers' }], 
+  promise: [{ icon:'🚚', title:'Fast Delivery', sub:'Karachi same-day' },{ icon:'💳', title:'Cash on Delivery', sub:'Pay when order arrives' },{ icon:'↩', title:'7-Day Returns', sub:'Hassle-free returns' },{ icon:'✓', title:'100% Genuine', sub:'Authentic products' }] 
+});
+const defaultProducts = [{ id:1, name:"AirBuds Pro Max", brand:"SoundX", cat:"Earbuds", price:2499, emoji:"🎧", badge:"hot", rating:4.8, reviews:312, desc:"Premium noise cancelling earbuds with 30hr battery life.", specs:[["Battery","30 hours"],["Bluetooth","5.3"]], gifts:["Charging Case","Ear Tips"], mainMedia:[{url:"https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80", type:"image", isPrimary:true}], colors:[] },{ id:2, name:"PowerVault 20K", brand:"Anker", cat:"Power Banks", price:3299, emoji:"🔋", badge:"new", rating:4.7, reviews:400, desc:"20000mAh fast charging power bank.", specs:[["Capacity","20000mAh"]], gifts:["Travel Pouch"], mainMedia:[{url:"https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&q=80", type:"image", isPrimary:true}], colors:[] }];
 
 function starsHTML(r){ return [1,2,3,4,5].map(i=>`<span class="star${i<=r?'':' e'}">★</span>`).join(''); }
 function getProductPrimaryMedia(p){ return (p.mainMedia && p.mainMedia.length && p.mainMedia[0].url) || p.emoji || '📦'; }
@@ -428,15 +483,15 @@ function colorDotsHTML(p){ if(p.colors && p.colors.length){ return `<div class="
 function giftBadgeHTML(p){ if(p.gifts && p.gifts.length) return `<div class="gift-badge">🎁 ${p.gifts.length} Gift${p.gifts.length>1?'s':''}</div>`; return ''; }
 function cardHTML(p){ let img = getProductPrimaryMedia(p); let imgHtml = (img && img.startsWith('http')) ? `<img src="${img}" alt="${p.name}" loading="lazy">` : (img || p.emoji || '📦'); return `<div class="prod-card" onclick="showDetail(${p.id})"><div class="prod-img-wrap">${p.badge && p.badge!=='sale' ?`<span class="prod-badge badge-${p.badge}">${p.badge==='gift'?'GIFT':p.badge==='new'?'NEW':'HOT'}</span>`:''}${giftBadgeHTML(p)}${colorDotsHTML(p)}<button class="wish-btn ${wishlist.has(p.id)?'liked':''}" onclick="toggleWish(event,${p.id})">♥</button>${imgHtml}</div><div class="prod-info"><div class="prod-brand">${p.brand}</div><div class="prod-name">${p.name}</div><div class="prod-stars">${starsHTML(p.rating)}<span class="rev-count">(${p.reviews})</span></div><div class="prod-bottom"><span class="price-now">Rs.${p.price.toLocaleString()}</span><button class="add-btn" onclick="event.stopPropagation();quickAddToCart(${p.id})">+</button></div></div></div>`; }
 function quickAddToCart(id){ addToCart(id, null, null, null); }
-function addToCart(id, colorCode, colorName, displayName){ let idx = cart.findIndex(c => c.id === id && c.selectedColor === colorCode); if(idx !== -1) cart[idx].qty++; else cart.push({ id, qty: 1, selectedColor: colorCode, colorName: displayName || colorName }); updateBadges(); showToast('Added to cart'); renderCart(); }
-function changeQty(id, colorCode, delta){ let idx = cart.findIndex(c => c.id === id && c.selectedColor === colorCode); if(idx !== -1){ cart[idx].qty += delta; if(cart[idx].qty <= 0) cart.splice(idx,1); updateBadges(); renderCart(); } }
-function removeCartItem(id, colorCode){ cart = cart.filter(c => !(c.id === id && c.selectedColor === colorCode)); updateBadges(); renderCart(); }
+function addToCart(id, colorCode, colorName, displayName){ let idx = cart.findIndex(c => c.id === id && c.selectedColor === colorCode); if(idx !== -1) cart[idx].qty++; else cart.push({ id, qty: 1, selectedColor: colorCode, colorName: displayName || colorName }); updateBadges(); showToast('Added to cart'); renderCart(); saveToLocalStorage('cart', cart); }
+function changeQty(id, colorCode, delta){ let idx = cart.findIndex(c => c.id === id && c.selectedColor === colorCode); if(idx !== -1){ cart[idx].qty += delta; if(cart[idx].qty <= 0) cart.splice(idx,1); updateBadges(); renderCart(); saveToLocalStorage('cart', cart); } }
+function removeCartItem(id, colorCode){ cart = cart.filter(c => !(c.id === id && c.selectedColor === colorCode)); updateBadges(); renderCart(); saveToLocalStorage('cart', cart); }
 function getDeliveryCharge(subtotal){ return (selectedCity === 'karachi' && subtotal >= FREE_SHIPPING_THRESHOLD) ? 0 : (selectedCity === 'karachi' ? DELIVERY_KARACHI : DELIVERY_OUTSIDE); }
 function renderCart(){ let items = cart.map(c => { let p = products.find(x => x.id === c.id); return p ? { ...p, qty: c.qty, selectedColor: c.selectedColor, colorName: c.colorName } : null; }).filter(Boolean); let subtotal = items.reduce((s,i) => s + i.price * i.qty, 0); let delivery = getDeliveryCharge(subtotal); let total = subtotal + delivery; let html = items.map(i => `<div class="cart-item"><div class="ci-img">${(getProductPrimaryMedia(i).startsWith('http'))?`<img src="${getProductPrimaryMedia(i)}">`:i.emoji}</div><div class="ci-info"><div class="ci-name">${i.name}</div><div class="ci-color"><div class="color-swatch" style="background:${i.selectedColor || '#ccc'}"></div>Color: <strong>${i.colorName || 'Default'}</strong></div><div>Rs. ${i.price.toLocaleString()} each</div></div><div class="ci-actions"><button class="qty-btn" onclick="changeQty(${i.id}, '${i.selectedColor}', -1)">-</button><span style="min-width:30px; text-align:center">${i.qty}</span><button class="qty-btn" onclick="changeQty(${i.id}, '${i.selectedColor}', 1)">+</button><button class="remove-btn" onclick="removeCartItem(${i.id}, '${i.selectedColor}')">Remove</button></div><div class="ci-price">Rs. ${(i.price * i.qty).toLocaleString()}</div></div>`).join(''); let citySelector = `<div class="city-selector"><button class="city-btn ${selectedCity==='karachi'?'active':''}" onclick="setCity('karachi')">📍 Karachi (Rs.${DELIVERY_KARACHI})</button><button class="city-btn ${selectedCity==='outside'?'active':''}" onclick="setCity('outside')">🏙️ Other City (Rs.${DELIVERY_OUTSIDE})</button></div>`; if(!items.length) document.getElementById('cart-content').innerHTML = '<div class="cart-empty">Your bag is empty.</div>'; else document.getElementById('cart-content').innerHTML = citySelector + html + `<div class="cart-summary"><div>Subtotal: Rs. ${subtotal.toLocaleString()}</div><div>Delivery: ${delivery === 0 ? 'FREE' : `Rs. ${delivery}`}</div><div class="sum-total">Total: Rs. ${total.toLocaleString()}</div><button class="checkout-btn" onclick="doCheckout()">Proceed to Checkout →</button></div>`; }
 function setCity(city){ selectedCity = city; renderCart(); }
 function doCheckout(){ if(!cart.length) return; let items = cart.map(c => { let p = products.find(x => x.id === c.id); return p ? { ...p, qty: c.qty, selectedColor: c.selectedColor, colorName: c.colorName } : null; }).filter(Boolean); let subtotal = items.reduce((s,i) => s + i.price * i.qty, 0); let delivery = getDeliveryCharge(subtotal); let total = subtotal + delivery; document.getElementById('wa-order-preview').innerHTML = `<div><strong>Items:</strong><br>${items.map(i => `${i.name} (${i.colorName || 'Default'}) x${i.qty} = Rs.${i.price * i.qty}`).join('<br>')}</div><div><strong>Subtotal:</strong> Rs. ${subtotal}</div><div><strong>Delivery:</strong> ${delivery === 0 ? 'FREE' : `Rs. ${delivery}`}</div><div><strong>Total:</strong> Rs. ${total}</div>`; document.getElementById('waOverlay').classList.add('open'); }
-function sendToWhatsApp(){ let name = document.getElementById('waName').value.trim(); let phone = document.getElementById('waPhone').value.trim(); let addr = document.getElementById('waAddress').value.trim(); if(!name || !phone || !addr){ showToast('Fill all fields'); return; } let items = cart.map(c => { let p = products.find(x => x.id === c.id); return p ? { ...p, qty: c.qty, selectedColor: c.selectedColor, colorName: c.colorName } : null; }).filter(Boolean); let subtotal = items.reduce((s,i) => s + i.price * i.qty, 0); let delivery = getDeliveryCharge(subtotal); let total = subtotal + delivery; let itemLines = items.map(i => `• ${i.name} - ${i.colorName || 'Default'} Color x${i.qty} = Rs. ${i.price * i.qty}`).join('\n'); let cityText = selectedCity === 'karachi' ? 'Karachi' : 'Outside Karachi'; let msg = `🛍 *NEW ORDER - accessories.pk*\n\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${addr}\n*City:* ${cityText}\n\n*Items:*\n${itemLines}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery:* ${delivery === 0 ? 'FREE' : `Rs. ${delivery}`}\n*Total:* Rs. ${total}\n*Payment:* Cash on Delivery`; window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank'); cart = []; updateBadges(); closeWAModalBtn(); showToast('Order sent!'); }
-function toggleWish(e,id){ e.stopPropagation(); wishlist.has(id)?wishlist.delete(id):wishlist.add(id); updateBadges(); renderWish(); renderShop(); renderHome(); }
+function sendToWhatsApp(){ let name = document.getElementById('waName').value.trim(); let phone = document.getElementById('waPhone').value.trim(); let addr = document.getElementById('waAddress').value.trim(); if(!name || !phone || !addr){ showToast('Fill all fields'); return; } let items = cart.map(c => { let p = products.find(x => x.id === c.id); return p ? { ...p, qty: c.qty, selectedColor: c.selectedColor, colorName: c.colorName } : null; }).filter(Boolean); let subtotal = items.reduce((s,i) => s + i.price * i.qty, 0); let delivery = getDeliveryCharge(subtotal); let total = subtotal + delivery; let itemLines = items.map(i => `• ${i.name} - ${i.colorName || 'Default'} Color x${i.qty} = Rs. ${i.price * i.qty}`).join('\n'); let cityText = selectedCity === 'karachi' ? 'Karachi' : 'Outside Karachi'; let msg = `🛍 *NEW ORDER - accessories.pk*\n\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${addr}\n*City:* ${cityText}\n\n*Items:*\n${itemLines}\n\n*Subtotal:* Rs. ${subtotal}\n*Delivery:* ${delivery === 0 ? 'FREE' : `Rs. ${delivery}`}\n*Total:* Rs. ${total}\n*Payment:* Cash on Delivery`; window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank'); cart = []; updateBadges(); closeWAModalBtn(); showToast('Order sent!'); saveToLocalStorage('cart', cart); }
+function toggleWish(e,id){ e.stopPropagation(); wishlist.has(id)?wishlist.delete(id):wishlist.add(id); updateBadges(); renderWish(); renderShop(); renderHome(); saveToLocalStorage('wishlist', Array.from(wishlist)); }
 function renderWish(){ let items=products.filter(p=>wishlist.has(p.id)); document.getElementById('wish-content').innerHTML=items.length?`<div class="products-grid">${items.map(cardHTML).join('')}</div>`:'<div style="text-align:center; padding:60px;">❤️ Your wishlist is empty</div>'; }
 function updateBadges(){ document.getElementById('cartBadge').innerText=cart.reduce((s,c)=>s+c.qty,0); let wb=document.getElementById('wishBadge'); if(wishlist.size){ wb.style.display='inline-flex'; wb.innerText=wishlist.size; }else wb.style.display='none'; }
 function showToast(msg){ let t=document.getElementById('toast'); t.innerText=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
@@ -444,37 +499,37 @@ function showToast(msg){ let t=document.getElementById('toast'); t.innerText=msg
 function renderHeroSlider(){ const slider = document.getElementById('heroSlider'); const dotsEl = document.getElementById('heroDots'); const arrowL = document.getElementById('heroArrowLeft'); const arrowR = document.getElementById('heroArrowRight'); if(!slider) return; if(!heroImages.length){ slider.innerHTML = `<div class="hero-placeholder"><span>Add hero images from Admin Panel</span></div>`; if(arrowL) arrowL.style.display='none'; if(arrowR) arrowR.style.display='none'; return; } const multi = heroImages.length > 1; if(arrowL) arrowL.style.display = multi ? 'flex' : 'none'; if(arrowR) arrowR.style.display = multi ? 'flex' : 'none'; slider.innerHTML = heroImages.map((img, i) => `<div class="hero-slide${i===heroIndex?' active':''}"><img src="${img.url}" alt="Banner"><div class="hero-slide-overlay"></div><div class="hero-content"><span class="hero-kicker">Pakistan's #1 Tech Store</span><h1>${img.title||'Premium Tech<br><em>Accessories</em>'}</h1><p>Earbuds · Headphones · Speakers · Power Banks — delivered across Pakistan.</p><button class="btn-primary" onclick="goShop()">Shop Now →</button></div></div>`).join(''); dotsEl.innerHTML = heroImages.map((_,i)=>`<button class="hero-dot${i===heroIndex?' active':''}" onclick="heroGoTo(${i})"></button>`).join(''); clearInterval(heroTimer); if(multi) heroTimer = setInterval(()=>heroSlide(1), 4500); }
 function heroSlide(dir){ if(!heroImages.length) return; heroGoTo((heroIndex + dir + heroImages.length) % heroImages.length); }
 function heroGoTo(n){ heroIndex = n; document.querySelectorAll('.hero-slide').forEach((el,i)=>el.classList.toggle('active',i===n)); document.querySelectorAll('.hero-dot').forEach((el,i)=>el.classList.toggle('active',i===n)); clearInterval(heroTimer); if(heroImages.length>1) heroTimer = setInterval(()=>heroSlide(1), 4500); }
-function renderSliderAdmin(){ const list = document.getElementById('sliderAdminList'); if(!list) return; list.innerHTML = heroImages.map((img,i)=>`<div class="slider-img-row"><div class="slider-img-preview">${img.url?`<img src="${img.url}">`:'—'}</div><input class="slider-img-url" placeholder="Image URL" value="${img.url||''}" id="sliderUrl${i}"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*" onchange="handleSliderUpload(this,${i})"></label><input class="slider-img-url" placeholder="Headline" value="${img.title||''}" id="sliderTitle${i}" style="max-width:150px;"><button class="slider-img-del" onclick="removeSliderRow(${i})">✕</button></div>`).join(''); }
-function handleSliderUpload(input, i){ const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = e => { const url = e.target.result; heroImages[i].url = url; document.getElementById('sliderUrl'+i).value = url; document.querySelector(`#sliderAdminList .slider-img-row:nth-child(${i+1}) .slider-img-preview`).innerHTML = `<img src="${url}">`; showToast('Image loaded'); }; reader.readAsDataURL(file); }
+function renderSliderAdmin(){ const list = document.getElementById('sliderAdminList'); if(!list) return; list.innerHTML = heroImages.map((img,i)=>`<div class="slider-img-row"><div class="slider-img-preview">${img.url?`<img src="${img.url}">`:'—'}</div><input class="slider-img-url" placeholder="Image URL" value="${img.url||''}" id="sliderUrl${i}"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*" onchange="handleSliderUpload(this,${i})"></label><span id="sliderSpin${i}" style="font-size:11px; color:#888;"></span><input class="slider-img-url" placeholder="Headline" value="${img.title||''}" id="sliderTitle${i}" style="max-width:150px;"><button class="slider-img-del" onclick="removeSliderRow(${i})">✕</button></div>`).join(''); }
+async function handleSliderUpload(input, i){ const file = input.files[0]; if(!file) return; const spinner = document.getElementById(`sliderSpin${i}`); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'hero_banners'); heroImages[i].url = url; document.getElementById('sliderUrl'+i).value = url; document.querySelector(`#sliderAdminList .slider-img-row:nth-child(${i+1}) .slider-img-preview`).innerHTML = `<img src="${url}">`; showToast('Image uploaded'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
 function addSliderRow(){ if(heroImages.length >= 8){ showToast('Max 8 banners'); return; } heroImages.push({url:'', title:''}); renderSliderAdmin(); }
-function removeSliderRow(i){ heroImages.splice(i,1); if(heroIndex >= heroImages.length) heroIndex = Math.max(0, heroImages.length-1); renderSliderAdmin(); renderHeroSlider(); }
-function saveSliderImages(){ heroImages = heroImages.map((_,i)=>({ url: document.getElementById(`sliderUrl${i}`)?.value?.trim()||'', title: document.getElementById(`sliderTitle${i}`)?.value?.trim()||'' })).filter(img=>img.url); if(window._fbReady && window._fb.db){ window._fb.db.collection('siteSettings').doc('heroSlider').set({ images: heroImages }).then(()=>showToast('Banners saved!')).catch(()=>showToast('Saved locally')); } else { showToast('Banners saved!'); } heroIndex = 0; renderHeroSlider(); renderSliderAdmin(); }
-function loadSliderImages(){ if(window._fbReady && window._fb.db){ window._fb.db.collection('siteSettings').doc('heroSlider').get().then(doc=>{ if(doc.exists && doc.data().images && doc.data().images.length){ heroImages = doc.data().images; heroIndex = 0; renderHeroSlider(); } }).catch(()=>{}); } }
+function removeSliderRow(i){ heroImages.splice(i,1); if(heroIndex >= heroImages.length) heroIndex = Math.max(0, heroImages.length-1); renderSliderAdmin(); renderHeroSlider(); saveToLocalStorage('heroImages', heroImages); }
+async function saveSliderImages(){ heroImages = heroImages.map((_,i)=>({ url: document.getElementById(`sliderUrl${i}`)?.value?.trim()||'', title: document.getElementById(`sliderTitle${i}`)?.value?.trim()||'' })).filter(img=>img.url); saveToLocalStorage('heroImages', heroImages); if(window._fbReady && window._fb.db){ await window._fb.db.collection('siteSettings').doc('heroSlider').set({ images: heroImages }); showToast('Banners saved to Firebase!'); } else { showToast('Banners saved to Local Storage'); } heroIndex = 0; renderHeroSlider(); renderSliderAdmin(); }
+function loadSliderImages(){ if(window._fbReady && window._fb.db){ window._fb.db.collection('siteSettings').doc('heroSlider').onSnapshot(doc=>{ if(doc.exists && doc.data().images && doc.data().images.length){ heroImages = doc.data().images; heroIndex = 0; renderHeroSlider(); saveToLocalStorage('heroImages', heroImages); } }, ()=>{}); } else { const saved = loadFromLocalStorage('heroImages', null); if(saved && saved.length){ heroImages = saved; renderHeroSlider(); } } }
 
 function renderFeatureBanner(){ const wrap = document.getElementById('featureBannerWrap'); if(!wrap) return; const d = promoData.featureBanner; if(!d || !d.img){ wrap.innerHTML = `<div class="feature-banner-placeholder"><span>Add a Feature Banner from Admin Panel</span></div>`; return; } wrap.innerHTML = `<div class="feature-banner"><img class="fb-bg" src="${d.img}" alt="Feature"><div class="fb-overlay"></div><div class="fb-content">${d.eyebrow?`<div class="fb-eyebrow">${d.eyebrow}</div>`:''}<div class="fb-heading">${(d.heading||'').replace(/\n/,'<br>')}</div>${d.sub?`<div class="fb-sub">${d.sub}</div>`:''}<button class="fb-btn" onclick="goShop()">${d.btn||'Shop Now'} →</button></div></div>`; }
 function renderSpotlight(){ const grid = document.getElementById('spotlightGrid'); if(!grid) return; if(!promoData.spotlight.length){ grid.innerHTML = `<div class="spotlight-placeholder">Add cards from Admin</div>`.repeat(4); return; } grid.innerHTML = promoData.spotlight.map(c=>`<div class="spotlight-card" onclick="filterCat('${c.filter||'All'}');goShop()"><img src="${c.img||''}" alt="${c.name||''}"><div class="sc-label"><div class="sc-cat">${c.cat||''}</div><div class="sc-name">${c.name||''}</div><div class="sc-link">Shop →</div></div></div>`).join(''); }
 function renderPromiseStrip(){ const inner = document.getElementById('promiseInner'); if(!inner) return; inner.innerHTML = (promoData.promise||[]).map(it=>`<div class="promise-item"><div class="promise-icon">${it.icon||''}</div><div class="promise-title">${it.title||''}</div><div class="promise-sub">${it.sub||''}</div></div>`).join(''); }
 function renderAllPromo(){ renderFeatureBanner(); renderSpotlight(); renderPromiseStrip(); }
-function renderPromoAdmin(){ const d = promoData.featureBanner; if(document.getElementById('fb-img')) document.getElementById('fb-img').value = d.img||''; if(document.getElementById('fb-eyebrow')) document.getElementById('fb-eyebrow').value = d.eyebrow||''; if(document.getElementById('fb-heading')) document.getElementById('fb-heading').value = d.heading||''; if(document.getElementById('fb-sub')) document.getElementById('fb-sub').value = d.sub||''; if(document.getElementById('fb-btn')) document.getElementById('fb-btn').value = d.btn||''; if(document.getElementById('fbImgPrevImg')){ document.getElementById('fbImgPrevImg').src = d.img||''; document.getElementById('fbImgPrevImg').style.display = d.img?'block':'none'; } const sList = document.getElementById('spotlightAdminList'); if(sList){ sList.innerHTML = promoData.spotlight.map((c,i)=>`<div class="slider-img-row"><div class="slider-img-preview">${c.img?`<img src="${c.img}">`:'—'}</div><input class="slider-img-url" placeholder="Image URL" value="${c.img||''}" id="spotImg${i}"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*" onchange="handleSpotUpload(this,${i})"></label><input class="slider-img-url" placeholder="Category" value="${c.cat||''}" id="spotCat${i}" style="max-width:100px;"><input class="slider-img-url" placeholder="Title" value="${c.name||''}" id="spotName${i}"><select id="spotFilter${i}" style="padding:8px;border:1px solid #C8C4BD;border-radius:6px;">${['All','Earbuds','Headphones','Speakers','Power Banks','Chargers','Mics','Smartwatches','Cables'].map(f=>`<option value="${f}" ${c.filter===f?'selected':''}>${f}</option>`).join('')}</select><button class="slider-img-del" onclick="removeSpotRow(${i})">✕</button></div>`).join(''); } const pList = document.getElementById('promiseAdminList'); if(pList){ pList.innerHTML = promoData.promise.map((it,i)=>`<div class="slider-img-row"><input class="slider-img-url" placeholder="Icon" value="${it.icon||''}" id="promIcon${i}" style="max-width:70px;"><input class="slider-img-url" placeholder="Title" value="${it.title||''}" id="promTitle${i}" style="max-width:140px;"><input class="slider-img-url" placeholder="Subtitle" value="${it.sub||''}" id="promSub${i}"><button class="slider-img-del" onclick="removePromiseRow(${i})">✕</button></div>`).join(''); } }
-function handleSpotUpload(input, i){ const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = e => { const url = e.target.result; promoData.spotlight[i].img = url; document.getElementById('spotImg'+i).value = url; document.querySelector(`#spotlightAdminList .slider-img-row:nth-child(${i+1}) .slider-img-preview`).innerHTML = `<img src="${url}">`; showToast('Image loaded'); }; reader.readAsDataURL(file); }
+function renderPromoAdmin(){ const d = promoData.featureBanner; if(document.getElementById('fb-img')) document.getElementById('fb-img').value = d.img||''; if(document.getElementById('fb-eyebrow')) document.getElementById('fb-eyebrow').value = d.eyebrow||''; if(document.getElementById('fb-heading')) document.getElementById('fb-heading').value = d.heading||''; if(document.getElementById('fb-sub')) document.getElementById('fb-sub').value = d.sub||''; if(document.getElementById('fb-btn')) document.getElementById('fb-btn').value = d.btn||''; if(document.getElementById('fbImgPrevImg')){ document.getElementById('fbImgPrevImg').src = d.img||''; document.getElementById('fbImgPrevImg').style.display = d.img?'block':'none'; } const sList = document.getElementById('spotlightAdminList'); if(sList){ sList.innerHTML = promoData.spotlight.map((c,i)=>`<div class="slider-img-row"><div class="slider-img-preview">${c.img?`<img src="${c.img}">`:'—'}</div><input class="slider-img-url" placeholder="Image URL" value="${c.img||''}" id="spotImg${i}"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*" onchange="handleSpotUpload(this,${i})"></label><span id="spotSpin${i}" style="font-size:11px; color:#888;"></span><input class="slider-img-url" placeholder="Category" value="${c.cat||''}" id="spotCat${i}" style="max-width:100px;"><input class="slider-img-url" placeholder="Title" value="${c.name||''}" id="spotName${i}"><select id="spotFilter${i}" style="padding:8px;border:1px solid #C8C4BD;border-radius:6px;">${['All','Earbuds','Headphones','Speakers','Power Banks','Chargers','Mics','Smartwatches','Cables'].map(f=>`<option value="${f}" ${c.filter===f?'selected':''}>${f}</option>`).join('')}</select><button class="slider-img-del" onclick="removeSpotRow(${i})">✕</button></div>`).join(''); } const pList = document.getElementById('promiseAdminList'); if(pList){ pList.innerHTML = promoData.promise.map((it,i)=>`<div class="slider-img-row"><input class="slider-img-url" placeholder="Icon" value="${it.icon||''}" id="promIcon${i}" style="max-width:70px;"><input class="slider-img-url" placeholder="Title" value="${it.title||''}" id="promTitle${i}" style="max-width:140px;"><input class="slider-img-url" placeholder="Subtitle" value="${it.sub||''}" id="promSub${i}"><button class="slider-img-del" onclick="removePromiseRow(${i})">✕</button></div>`).join(''); } }
+async function handleSpotUpload(input, i){ const file = input.files[0]; if(!file) return; const spinner = document.getElementById(`spotSpin${i}`); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'spotlight'); promoData.spotlight[i].img = url; document.getElementById('spotImg'+i).value = url; document.querySelector(`#spotlightAdminList .slider-img-row:nth-child(${i+1}) .slider-img-preview`).innerHTML = `<img src="${url}">`; showToast('Image uploaded'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
 function addSpotlightRow(){ if(promoData.spotlight.length >= 4){ showToast('Max 4 cards'); return; } promoData.spotlight.push({img:'',cat:'',name:'',filter:'All'}); renderPromoAdmin(); }
 function removeSpotRow(i){ promoData.spotlight.splice(i,1); renderPromoAdmin(); }
 function addPromiseRow(){ if(promoData.promise.length >= 4){ showToast('Max 4 items'); return; } promoData.promise.push({icon:'',title:'',sub:''}); renderPromoAdmin(); }
 function removePromiseRow(i){ promoData.promise.splice(i,1); renderPromoAdmin(); }
-function savePromoSections(){ promoData.featureBanner = { img: document.getElementById('fb-img')?.value?.trim()||'', eyebrow: document.getElementById('fb-eyebrow')?.value?.trim()||'', heading: document.getElementById('fb-heading')?.value?.trim()||'', sub: document.getElementById('fb-sub')?.value?.trim()||'', btn: document.getElementById('fb-btn')?.value?.trim()||'Shop Now' }; promoData.spotlight = promoData.spotlight.map((_,i)=>({ img: document.getElementById('spotImg'+i)?.value?.trim()||'', cat: document.getElementById('spotCat'+i)?.value?.trim()||'', name: document.getElementById('spotName'+i)?.value?.trim()||'', filter: document.getElementById('spotFilter'+i)?.value||'All' })).filter(c=>c.img||c.name); promoData.promise = promoData.promise.map((_,i)=>({ icon: document.getElementById('promIcon'+i)?.value?.trim()||'', title: document.getElementById('promTitle'+i)?.value?.trim()||'', sub: document.getElementById('promSub'+i)?.value?.trim()||'' })).filter(it=>it.title); if(window._fbReady && window._fb.db){ window._fb.db.collection('siteSettings').doc('promoSections').set(promoData).then(()=>showToast('Promo sections saved!')).catch(()=>showToast('Saved locally')); } else { showToast('Saved!'); } renderAllPromo(); renderPromoAdmin(); }
-function loadPromoSections(){ if(window._fbReady && window._fb.db){ window._fb.db.collection('siteSettings').doc('promoSections').get().then(doc=>{ if(doc.exists){ promoData = doc.data(); renderAllPromo(); } else { renderAllPromo(); } }).catch(()=>{ renderAllPromo(); }); } else { renderAllPromo(); } }
+async function savePromoSections(){ promoData.featureBanner = { img: document.getElementById('fb-img')?.value?.trim()||'', eyebrow: document.getElementById('fb-eyebrow')?.value?.trim()||'', heading: document.getElementById('fb-heading')?.value?.trim()||'', sub: document.getElementById('fb-sub')?.value?.trim()||'', btn: document.getElementById('fb-btn')?.value?.trim()||'Shop Now' }; promoData.spotlight = promoData.spotlight.map((_,i)=>({ img: document.getElementById('spotImg'+i)?.value?.trim()||'', cat: document.getElementById('spotCat'+i)?.value?.trim()||'', name: document.getElementById('spotName'+i)?.value?.trim()||'', filter: document.getElementById('spotFilter'+i)?.value||'All' })).filter(c=>c.img||c.name); promoData.promise = promoData.promise.map((_,i)=>({ icon: document.getElementById('promIcon'+i)?.value?.trim()||'', title: document.getElementById('promTitle'+i)?.value?.trim()||'', sub: document.getElementById('promSub'+i)?.value?.trim()||'' })).filter(it=>it.title); saveToLocalStorage('promoData', promoData); if(window._fbReady && window._fb.db){ await window._fb.db.collection('siteSettings').doc('promoSections').set(promoData); showToast('Promo sections saved to Firebase!'); } else { showToast('Promo sections saved to Local Storage'); } renderAllPromo(); renderPromoAdmin(); }
+function loadPromoSections(){ if(window._fbReady && window._fb.db){ window._fb.db.collection('siteSettings').doc('promoSections').onSnapshot(doc=>{ if(doc.exists){ promoData = doc.data(); renderAllPromo(); renderPromoAdmin(); saveToLocalStorage('promoData', promoData); } else { renderAllPromo(); } }, ()=>{ renderAllPromo(); }); } else { const saved = loadFromLocalStorage('promoData', null); if(saved){ promoData = saved; } renderAllPromo(); } }
 
-function renderAnnouncementBar(){ const bar = document.getElementById('topbarTrack'); if(!bar) return; const items = announcementItems.length ? announcementItems : [{ text:'accessories.pk — Premium Tech Accessories' }]; const html = [...items, ...items].map(it => `<span class="topbar-item">${it.text}</span><span class="topbar-sep">·</span>`).join(''); bar.innerHTML = html; }
+function renderAnnouncementBar(){ const bar = document.getElementById('topbarTrack'); if(!bar) return; const items = announcementItems.length ? announcementItems : [{ text:'accessories.pk' }]; const html = [...items, ...items].map(it => `<span class="topbar-item">${it.text}</span><span class="topbar-sep">·</span>`).join(''); bar.innerHTML = html; }
 function renderAnnouncementAdmin(){ const list = document.getElementById('announcementAdminList'); if(!list) return; list.innerHTML = announcementItems.map((it,i)=>`<div class="slider-img-row"><input class="slider-img-url" placeholder="Message text" value="${it.text||''}" id="ann${i}" style="flex:1;"><button class="slider-img-del" onclick="removeAnnouncementRow(${i})">✕</button></div>`).join(''); }
 function addAnnouncementRow(){ if(announcementItems.length >= 8){ showToast('Max 8 messages'); return; } announcementItems.push({ text:'' }); renderAnnouncementAdmin(); }
 function removeAnnouncementRow(i){ announcementItems.splice(i,1); renderAnnouncementAdmin(); }
-function saveAnnouncements(){ announcementItems = announcementItems.map((_,i)=>({ text: document.getElementById('ann'+i)?.value?.trim()||'' })).filter(it=>it.text); if(window._fbReady && window._fb.db){ window._fb.db.collection('siteSettings').doc('announcements').set({ items: announcementItems }).then(()=>showToast('Announcement bar saved!')).catch(()=>showToast('Saved locally')); } else { showToast('Saved!'); } renderAnnouncementBar(); renderAnnouncementAdmin(); }
-function loadAnnouncements(){ if(window._fbReady && window._fb.db){ window._fb.db.collection('siteSettings').doc('announcements').get().then(doc=>{ if(doc.exists && doc.data().items && doc.data().items.length){ announcementItems = doc.data().items; renderAnnouncementBar(); } }).catch(()=>{}); } }
+async function saveAnnouncements(){ announcementItems = announcementItems.map((_,i)=>({ text: document.getElementById('ann'+i)?.value?.trim()||'' })).filter(it=>it.text); saveToLocalStorage('announcements', announcementItems); if(window._fbReady && window._fb.db){ await window._fb.db.collection('siteSettings').doc('announcements').set({ items: announcementItems }); showToast('Announcement bar saved to Firebase!'); } else { showToast('Announcement bar saved to Local Storage'); } renderAnnouncementBar(); renderAnnouncementAdmin(); }
+function loadAnnouncements(){ if(window._fbReady && window._fb.db){ window._fb.db.collection('siteSettings').doc('announcements').onSnapshot(doc=>{ if(doc.exists && doc.data().items && doc.data().items.length){ announcementItems = doc.data().items; renderAnnouncementBar(); renderAnnouncementAdmin(); saveToLocalStorage('announcements', announcementItems); } }, ()=>{}); } else { const saved = loadFromLocalStorage('announcements', null); if(saved){ announcementItems = saved; renderAnnouncementBar(); } } }
 
 let recentlyViewed = [];
-function trackRecentlyViewed(id){ recentlyViewed = recentlyViewed.filter(x => x !== id); recentlyViewed.unshift(id); if(recentlyViewed.length > 6) recentlyViewed.pop(); renderRecentlyViewed(); }
+function trackRecentlyViewed(id){ recentlyViewed = recentlyViewed.filter(x => x !== id); recentlyViewed.unshift(id); if(recentlyViewed.length > 6) recentlyViewed.pop(); renderRecentlyViewed(); saveToLocalStorage('recentlyViewed', recentlyViewed); }
 function renderRecentlyViewed(){ const section = document.getElementById('recentlyViewedSection'); const grid = document.getElementById('recently-viewed-grid'); if(!section || !grid) return; const items = recentlyViewed.map(id => products.find(p => p.id === id)).filter(Boolean); if(items.length > 1){ section.style.display = 'block'; grid.innerHTML = items.map(cardHTML).join(''); } else { section.style.display = 'none'; } }
-function clearRecentlyViewed(){ recentlyViewed = []; renderRecentlyViewed(); }
+function clearRecentlyViewed(){ recentlyViewed = []; renderRecentlyViewed(); saveToLocalStorage('recentlyViewed', []); }
 
 let currentDetailProduct = null, currentColorIndex = 0, currentMediaIndex = 0;
 function showDetail(id){ let p = products.find(x => x.id === id); if(!p) return; currentDetailProduct = p; currentColorIndex = 0; currentMediaIndex = 0; trackRecentlyViewed(id); renderDetailPage(); showPage('detail'); }
@@ -490,13 +545,17 @@ function goHome(){ showPage('home'); renderHome(); }
 function goShop(){ showPage('shop'); renderShop(); }
 function goCart(){ showPage('cart'); renderCart(); }
 function goWish(){ showPage('wish'); renderWish(); }
+function setActiveNav(btn){
+  document.querySelectorAll('#mainDesktopNav .desktop-nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
 function filterCat(cat){ currentFilter=cat; searchQuery=''; document.getElementById('searchInput').value=''; if(activePage!=='shop') goShop(); else renderShop(); }
 function handleSearch(val){ searchQuery=val.toLowerCase().trim(); currentFilter='search'; if(activePage!=='shop') goShop(); else renderShop(); }
 function renderHome(){ let best=products.slice().sort((a,b)=>b.reviews-a.reviews).slice(0,4); let newArr=products.filter(p=>p.badge==='new').slice(0,4); document.getElementById('home-grid').innerHTML=best.map(cardHTML).join(''); document.getElementById('new-grid').innerHTML=newArr.map(cardHTML).join(''); renderRecentlyViewed(); }
 function renderShop(){ let filtered=products; if(currentFilter==='New') filtered=products.filter(p=>p.badge==='new'); else if(currentFilter==='search' && searchQuery) filtered=products.filter(p=>p.name.toLowerCase().includes(searchQuery) || p.brand.toLowerCase().includes(searchQuery) || p.cat.toLowerCase().includes(searchQuery)); else if(currentFilter!=='All' && currentFilter!=='search') filtered=products.filter(p=>p.cat===currentFilter); let grid=document.getElementById('shop-grid'); if(!filtered.length){ grid.innerHTML=''; document.getElementById('no-results').style.display='block'; }else{ grid.innerHTML=filtered.map(cardHTML).join(''); document.getElementById('no-results').style.display='none'; } document.getElementById('prod-count').innerText=filtered.length+' items'; }
 
-function addMainMedia(url='', type='image', isPrimary=false){ let div = document.createElement('div'); div.className = 'slider-img-row'; div.innerHTML = `<select class="admin-select" style="width:auto; margin:0;"><option value="image" ${type==='image'?'selected':''}>Image</option><option value="video" ${type==='video'?'selected':''}>Video</option></select><input class="slider-img-url" placeholder="Media URL" value="${url}" id="mmUrl_${Date.now()}"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*,video/*" onchange="handleMainMediaUpload(this, '${url}')"></label><div class="media-preview" style="width:52px;height:52px;">${url && url.startsWith('http')?(type==='video'?'🎬':`<img src="${url}">`):'—'}</div><div class="primary-media-check"><input type="radio" name="primaryMedia" ${isPrimary?'checked':''} class="primary-media-radio"><label>Primary</label></div><button class="slider-img-del" onclick="this.parentElement.remove()">✕</button>`; document.getElementById('mainMediaList').appendChild(div); }
-function handleMainMediaUpload(input, uid){ const file = input.files[0]; if(!file) return; const row = input.closest('.slider-img-row'); const urlInput = row.querySelector('.slider-img-url'); const preview = row.querySelector('.media-preview'); const reader = new FileReader(); reader.onload = e => { urlInput.value = e.target.result; if(file.type.startsWith('video')) preview.innerHTML = '🎬'; else preview.innerHTML = `<img src="${e.target.result}">`; showToast('Media loaded'); }; reader.readAsDataURL(file); }
+function addMainMedia(url='', type='image', isPrimary=false){ let div = document.createElement('div'); div.className = 'slider-img-row'; div.innerHTML = `<select class="admin-select" style="width:auto; margin:0;"><option value="image" ${type==='image'?'selected':''}>Image</option><option value="video" ${type==='video'?'selected':''}>Video</option></select><input class="slider-img-url" placeholder="Media URL" value="${url}" id="mmUrl_${Date.now()}"><label class="upload-btn">&#8593; Upload<input type="file" accept="image/*,video/*" onchange="handleMainMediaUpload(this)"></label><span class="upload-spinner" style="font-size:11px; color:#888;"></span><div class="slider-img-preview" style="width:52px;height:52px;">${url && url.startsWith('http')?(type==='video'?'🎬':`<img src="${url}">`):'—'}</div><div class="primary-media-check"><input type="radio" name="primaryMedia" ${isPrimary?'checked':''} class="primary-media-radio"><label>Primary</label></div><button class="slider-img-del" onclick="this.parentElement.remove()">✕</button>`; document.getElementById('mainMediaList').appendChild(div); }
+async function handleMainMediaUpload(input){ const file = input.files[0]; if(!file) return; const row = input.closest('.slider-img-row'); const urlInput = row.querySelector('.slider-img-url'); const preview = row.querySelector('.slider-img-preview'); const spinner = row.querySelector('.upload-spinner'); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'product_media'); urlInput.value = url; if(file.type.startsWith('video')) preview.innerHTML = '🎬'; else preview.innerHTML = `<img src="${url}">`; showToast('Media uploaded'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
 function getMainMedia(){ let media = []; document.querySelectorAll('#mainMediaList .slider-img-row').forEach(row => { let url = row.querySelector('.slider-img-url').value.trim(); if(url){ media.push({ url, type: row.querySelector('select').value, isPrimary: row.querySelector('.primary-media-radio').checked }); } }); return media; }
 function addColorGroup(colorCode='#000000', colorName='', images=[], primaryIdx=0){ let groupId = 'cg_' + Date.now(); let imagesHtml = ''; if(images.length){ images.forEach((img, idx) => { imagesHtml += `<div class="slider-img-row" style="margin-bottom:5px;"><input type="text" placeholder="Image URL" value="${img}" class="slider-img-url" style="flex:1;"><div class="slider-img-preview" style="width:40px;height:40px;">${img && img.startsWith('http')?`<img src="${img}">`:'—'}</div><div class="primary-check"><input type="radio" name="primary_${groupId}" value="${idx}" ${idx===primaryIdx?'checked':''} class="primary-radio"><label>Primary</label></div><button class="slider-img-del" onclick="this.parentElement.remove()">✕</button></div>`; }); } else { imagesHtml = `<div class="slider-img-row" style="margin-bottom:5px;"><input type="text" placeholder="Image URL" class="slider-img-url" style="flex:1;"><div class="slider-img-preview" style="width:40px;height:40px;">—</div><div class="primary-check"><input type="radio" name="primary_${groupId}" value="0" class="primary-radio" checked><label>Primary</label></div><button class="slider-img-del" onclick="this.parentElement.remove()">✕</button></div>`; } let div = document.createElement('div'); div.className = 'color-group'; div.style.border='1px solid #E0DDD8'; div.style.padding='12px'; div.style.marginBottom='15px'; div.style.borderRadius='8px'; div.innerHTML = `<div class="color-header" style="display:flex; gap:10px; margin-bottom:10px;"><input type="color" value="${colorCode}" class="color-code-input"><input type="text" placeholder="Color name" value="${colorName}" class="color-name-input" style="flex:1;"><button onclick="this.closest('.color-group').remove()" style="background:#fee; border:none; padding:5px 10px; border-radius:6px;">Remove Color</button></div><div class="color-images-list">${imagesHtml}</div><button class="slider-add-btn" style="margin-top:10px;" onclick="addImageToColorGroup(this)">+ Add Image</button>`; document.getElementById('colorList').appendChild(div); }
 function addImageToColorGroup(btn){ let container = btn.previousElementSibling; let groupId = btn.closest('.color-group').querySelector('.color-name-input').name || 'cg'; let idx = container.children.length; let div = document.createElement('div'); div.className = 'slider-img-row'; div.style.marginBottom='5px'; div.innerHTML = `<input type="text" placeholder="Image URL" class="slider-img-url" style="flex:1;"><div class="slider-img-preview" style="width:40px;height:40px;">—</div><div class="primary-check"><input type="radio" name="primary_${groupId}" value="${idx}" class="primary-radio"><label>Primary</label></div><button class="slider-img-del" onclick="this.parentElement.remove()">✕</button>`; container.appendChild(div); }
@@ -508,20 +567,34 @@ function getSpecs(){ return Array.from(document.querySelectorAll('#specList .sli
 function resetForm(){ document.getElementById('f-name').value=''; document.getElementById('f-brand').value=''; document.getElementById('f-cat').value=''; document.getElementById('f-price').value=''; document.getElementById('f-emoji').value=''; document.getElementById('f-badge').value=''; document.getElementById('f-desc').value=''; document.getElementById('specList').innerHTML=''; document.getElementById('colorList').innerHTML=''; document.getElementById('giftList').innerHTML=''; document.getElementById('mainMediaList').innerHTML=''; editingId=null; document.getElementById('formCardTitle').innerText='Add Product'; document.getElementById('adminCancelBtn').style.display='none'; }
 function cancelEdit(){ resetForm(); renderAdminList(); }
 function editProduct(id){ let p=products.find(x=>x.id===id); if(!p) return; editingId=p.id; document.getElementById('f-name').value=p.name; document.getElementById('f-brand').value=p.brand; document.getElementById('f-cat').value=p.cat; document.getElementById('f-price').value=p.price; document.getElementById('f-emoji').value=p.emoji||'📦'; document.getElementById('f-badge').value=p.badge||''; document.getElementById('f-desc').value=p.desc||''; document.getElementById('specList').innerHTML=''; (p.specs||[]).forEach(s=>addSpecRow(s[0], s[1]||'')); document.getElementById('colorList').innerHTML=''; (p.colors||[]).forEach(c=>addColorGroup(c.code, c.name, c.images||[], c.primaryImage||0)); document.getElementById('giftList').innerHTML=''; (p.gifts||[]).forEach(g=>addGiftRow(g)); document.getElementById('mainMediaList').innerHTML=''; (p.mainMedia||[]).forEach(m=>addMainMedia(m.url, m.type, m.isPrimary)); document.getElementById('formCardTitle').innerText='Editing Product'; document.getElementById('adminCancelBtn').style.display='inline-block'; renderAdminList(); }
-async function saveProduct(){ let name=document.getElementById('f-name').value.trim(); if(!name) return showToast('Name required'); let brand=document.getElementById('f-brand').value.trim(); let cat=document.getElementById('f-cat').value; let price=parseInt(document.getElementById('f-price').value); let emoji=document.getElementById('f-emoji').value.trim() || '📦'; let desc=document.getElementById('f-desc').value.trim(); if(!brand||!cat||!price||!desc) return showToast('Fill required fields'); let badge=document.getElementById('f-badge').value||null; let specs=getSpecs(); let colors=getColorsFromForm(); let gifts=getGifts(); let mainMedia=getMainMedia(); let productId = editingId ? editingId : Date.now(); let newProduct={ name,brand,cat,price,emoji,badge,desc,specs,colors,gifts,mainMedia,rating:4.5,reviews:0,id:productId }; if(editingId){ let idx=products.findIndex(p=>p.id===editingId); if(idx!==-1){ newProduct.rating=products[idx].rating; products[idx]=newProduct; } } else products.push(newProduct); if(window._fbReady && window._fb.col){ let docId=editingId?products.find(p=>p.id===editingId)?._docId:null; let data={...newProduct}; delete data._docId; if(docId) await window._fb.col.doc(docId).set(data); else await window._fb.col.add(data); } resetForm(); renderAdminList(); renderHome(); renderShop(); showToast('Saved!'); }
-async function deleteProduct(id){ if(!confirm('Delete?')) return; let idx=products.findIndex(p=>p.id===id); if(idx!==-1){ let docId=products[idx]._docId; products.splice(idx,1); if(window._fbReady && docId) await window._fb.col.doc(docId).delete(); renderAdminList(); renderHome(); renderShop(); showToast('Deleted'); } }
+async function saveProduct(){ let name=document.getElementById('f-name').value.trim(); if(!name) return showToast('Name required'); let brand=document.getElementById('f-brand').value.trim(); let cat=document.getElementById('f-cat').value; let price=parseInt(document.getElementById('f-price').value); let emoji=document.getElementById('f-emoji').value.trim() || '📦'; let desc=document.getElementById('f-desc').value.trim(); if(!brand||!cat||!price||!desc) return showToast('Fill required fields'); let badge=document.getElementById('f-badge').value||null; let specs=getSpecs(); let colors=getColorsFromForm(); let gifts=getGifts(); let mainMedia=getMainMedia(); let productId = editingId ? editingId : Date.now(); let newProduct={ name,brand,cat,price,emoji,badge,desc,specs,colors,gifts,mainMedia,rating:4.5,reviews:0,id:productId }; if(editingId){ let idx=products.findIndex(p=>p.id===editingId); if(idx!==-1){ newProduct.rating=products[idx].rating; products[idx]=newProduct; } } else products.push(newProduct); if(window._fbReady && window._fb.col){ let docId=editingId?products.find(p=>p.id===editingId)?._docId:null; let data={...newProduct}; delete data._docId; if(docId) await window._fb.col.doc(docId).set(data); else await window._fb.col.add(data); showToast('Product saved to Firebase!'); } else { showToast('Product saved locally'); saveToLocalStorage('products', products); } resetForm(); renderAdminList(); renderHome(); renderShop(); }
+async function deleteProduct(id){ if(!confirm('Delete?')) return; let idx=products.findIndex(p=>p.id===id); if(idx!==-1){ let docId=products[idx]._docId; products.splice(idx,1); if(window._fbReady && docId) await window._fb.col.doc(docId).delete(); renderAdminList(); renderHome(); renderShop(); showToast('Deleted'); saveToLocalStorage('products', products); } }
 function renderAdminList(){ let q=document.getElementById('adminSearch')?.value.toLowerCase()||''; let filtered=products.filter(p=>p.name.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q)); document.getElementById('adminProdList').innerHTML=filtered.map(p=>`<div class="admin-prod-item"><div class="api-emoji">${p.emoji||''}</div><div class="api-info"><div class="api-name">${p.name}</div><div>${p.brand} | ${p.cat} ${p.colors?.length?`${p.colors.length} colors`:''}</div></div><div class="api-price">Rs.${p.price}</div><div><button class="api-edit-btn" onclick="editProduct(${p.id})">Edit</button><button class="api-del-btn" onclick="deleteProduct(${p.id})">Del</button></div></div>`).join(''); document.getElementById('stat-total').innerText=products.length; document.getElementById('stat-new').innerText=products.filter(p=>p.badge==='new').length; document.getElementById('stat-hot').innerText=products.filter(p=>p.badge==='hot').length; }
 function exportProducts(){ let data=JSON.stringify(products.map(p=>{ delete p._docId; return p; }),null,2); let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([data])); a.download='products.json'; a.click(); }
-function importProducts(e){ let file=e.target.files[0]; if(!file) return; let reader=new FileReader(); reader.onload=ev=>{ try{ let imported=JSON.parse(ev.target.result); if(Array.isArray(imported)){ products=imported; renderAdminList(); renderHome(); renderShop(); showToast('Imported'); } }catch(err){ showToast('Invalid JSON'); } }; reader.readAsText(file); }
+function importProducts(e){ let file=e.target.files[0]; if(!file) return; let reader=new FileReader(); reader.onload=ev=>{ try{ let imported=JSON.parse(ev.target.result); if(Array.isArray(imported)){ products=imported; renderAdminList(); renderHome(); renderShop(); showToast('Imported'); saveToLocalStorage('products', products); } }catch(err){ showToast('Invalid JSON'); } }; reader.readAsText(file); }
 function checkAdminLogin(){ let pwd=document.getElementById('adminPwd').value; if(pwd===ADMIN_PASSWORD){ sessionStorage.setItem('apk_admin','1'); showPage('admin'); renderAdminList(); renderSliderAdmin(); renderAnnouncementAdmin(); }else{ showToast('Wrong password'); } }
 function handleHash(){ if(window.location.hash==='#admin'){ if(sessionStorage.getItem('apk_admin')==='1') showPage('admin'); else showPage('admin-login'); } }
 window.addEventListener('hashchange',handleHash);
 function closeWAModal(e){ if(e?.target?.id==='waOverlay') closeWAModalBtn(); }
 function closeWAModalBtn(){ document.getElementById('waOverlay').classList.remove('open'); }
 function updateFbPreview(url){ let img = document.getElementById('fbImgPrevImg'); if(img){ img.src=url; img.style.display=url?'block':'none'; } }
-function handleFbUpload(input){ let file=input.files[0]; if(!file) return; let reader=new FileReader(); reader.onload=e=>{ let url=e.target.result; document.getElementById('fb-img').value=url; updateFbPreview(url); showToast('Image loaded'); }; reader.readAsDataURL(file); }
+async function handleFbUpload(input){ const file = input.files[0]; if(!file) return; const spinner = document.getElementById('fbUploadSpinner'); if(spinner) spinner.innerHTML = '<span class="loading-spinner"></span>'; try { const url = await uploadImageToStorage(file, 'feature_banners'); document.getElementById('fb-img').value = url; updateFbPreview(url); showToast('Feature banner image uploaded'); } catch(e) { showToast('Upload failed: ' + e.message); } finally { if(spinner) spinner.innerHTML = ''; } }
 
-renderHeroSlider(); renderAnnouncementBar(); renderAllPromo(); renderSliderAdmin(); renderPromoAdmin(); renderAnnouncementAdmin();
+// Load saved data from localStorage on startup
+function loadSavedData() {
+  const savedCart = loadFromLocalStorage('cart', []);
+  if(savedCart.length) cart = savedCart;
+  const savedWishlist = loadFromLocalStorage('wishlist', []);
+  wishlist = new Set(savedWishlist);
+  const savedRecent = loadFromLocalStorage('recentlyViewed', []);
+  if(savedRecent.length) recentlyViewed = savedRecent;
+  updateBadges();
+  renderCart();
+  renderWish();
+  renderRecentlyViewed();
+}
+
+renderHeroSlider(); renderAnnouncementBar(); renderAllPromo(); renderSliderAdmin(); renderPromoAdmin(); renderAnnouncementAdmin(); loadSavedData();
 handleHash();
 </script>
 </body>

@@ -1004,7 +1004,7 @@ async function loadProducts() {
   fsListen('announcements', (val) => { if(val) { announcements = val; saveToLocal('announcements', val); renderAnnouncementBar(); renderAnnouncementAdmin(); } });
 }
 
-function renderAll() { renderHome(); if (activePage === 'shop') renderShop(); renderAdminProductList(); updateBadges(); }
+function renderAll() { renderHome(); renderShop(); renderAdminProductList(); updateBadges(); }
 
 function getProductImage(p) { return (p.images && p.images[0]) ? p.images[0] : 'https://placehold.co/600x600/1a1a1a/ff6b6b?text=Cable'; }
 
@@ -1055,7 +1055,19 @@ function renderPromoCards() { document.getElementById('promoCardsInner').innerHT
 function renderPromiseStrip() { document.getElementById('promiseInner').innerHTML = promiseItems.map(p=>`<div class="promise-item"><div class="promise-icon">${p.icon}</div><div class="promise-title">${p.title}</div><div class="promise-sub">${p.sub}</div></div>`).join(''); }
 function renderAnnouncementBar() { let bar = document.getElementById('topbarTrack'); let items = announcements.length ? announcements : [{text:'accessories.pk'}]; let html = [...items,...items].map(it=>`<span class="topbar-item">${it.text}</span><span class="topbar-sep">·</span>`).join(''); bar.innerHTML = html; }
 
-function renderHome() { let best = products.slice().sort((a,b)=>(b.reviews||0)-(a.reviews||0)).slice(0,4); let newArr = products.filter(p=>p.badge==='new').slice(0,4); document.getElementById('homeGrid').innerHTML = best.map(cardHTML).join(''); document.getElementById('newGrid').innerHTML = newArr.map(cardHTML).join(''); }
+function renderHome() {
+  // Sort by reviews desc; if all have 0 reviews, sort newest first by id
+  let sorted = products.slice().sort((a,b) => {
+    let diff = (b.reviews||0) - (a.reviews||0);
+    return diff !== 0 ? diff : b.id - a.id;
+  });
+  let best = sorted.slice(0, 8);
+  let newArr = products.filter(p=>p.badge==='new');
+  // If no new-badge products, just show 4 most recent
+  if (!newArr.length) newArr = products.slice().sort((a,b)=>b.id-a.id).slice(0,4);
+  document.getElementById('homeGrid').innerHTML = best.length ? best.map(cardHTML).join('') : '<div style="padding:40px;color:var(--text-muted);text-align:center;">No products yet. Add some in Admin.</div>';
+  document.getElementById('newGrid').innerHTML = newArr.map(cardHTML).join('');
+}
 function renderShop() { let filtered = products; if (currentFilter === 'New') filtered = products.filter(p=>p.badge==='new'); else if (currentFilter === 'search' && searchQuery) filtered = products.filter(p=>p.name.toLowerCase().includes(searchQuery)||p.brand.toLowerCase().includes(searchQuery)); else if (currentFilter !== 'All' && currentFilter !== 'search') filtered = products.filter(p=>p.cat === currentFilter); document.getElementById('shopGrid').innerHTML = filtered.map(cardHTML).join(''); document.getElementById('noResults').style.display = filtered.length ? 'none' : 'block'; document.getElementById('prodCount').innerHTML = filtered.length + ' items'; }
 function renderWish() { let items = products.filter(p=>wishlist.has(p.id)); document.getElementById('wishContent').innerHTML = items.length ? `<div class="products-grid">${items.map(cardHTML).join('')}</div>` : '<div style="text-align:center; padding:60px;">❤️ Wishlist is empty</div>'; }
 function renderCart() { let items = cart.map(c => products.find(p=>p.id===c.id)).filter(Boolean); let subtotal = items.reduce((s,i)=>s + i.price * (cart.find(c=>c.id===i.id)?.qty||1), 0); let delivery = (selectedCity === 'karachi' && subtotal >= FREE_SHIPPING) ? 0 : (selectedCity === 'karachi' ? DELIVERY_KARACHI : DELIVERY_OUTSIDE); let total = subtotal + delivery; let html = items.map(i => { let qty = cart.find(c=>c.id===i.id)?.qty||1; return `<div class="cart-item"><img class="cart-item-image" src="${getProductImage(i)}"><div style="flex:1"><strong>${i.name}</strong><div>Rs.${i.price}</div><div><button onclick="changeQty(${i.id},-1)">-</button> ${qty} <button onclick="changeQty(${i.id},1)">+</button></div></div><div>Rs.${(i.price*qty).toLocaleString()}</div></div>`; }).join(''); let citySelector = `<div class="city-selector"><button class="city-btn ${selectedCity==='karachi'?'active':''}" onclick="setCity('karachi')">📍 Karachi (Rs.${DELIVERY_KARACHI})</button><button class="city-btn ${selectedCity==='outside'?'active':''}" onclick="setCity('outside')">🏙️ Other (Rs.${DELIVERY_OUTSIDE})</button></div>`; if (!items.length) document.getElementById('cartContent').innerHTML = '<div style="text-align:center; padding:60px;">Cart is empty</div>'; else document.getElementById('cartContent').innerHTML = citySelector + html + `<div style="margin-top:20px;"><strong>Subtotal: Rs.${subtotal}</strong><br>Delivery: ${delivery===0?'FREE':`Rs.${delivery}`}<br><strong>Total: Rs.${total}</strong><br><button class="checkout-btn" onclick="doCheckout()">Proceed to Checkout →</button></div>`; }
@@ -1228,12 +1240,24 @@ function addColorVariant() {
 }
 
 function removeColorVariant(ci) {
+  syncColorDataFromDOM();
   colorVariantsData.splice(ci, 1);
   renderColorVariantsAdmin();
 }
 
+// Sync whatever user typed into inputs BACK to colorVariantsData before any re-render
+function syncColorDataFromDOM() {
+  colorVariantsData.forEach((cv, ci) => {
+    let nameEl = document.getElementById(`cvName${ci}`);
+    let hexEl  = document.getElementById(`cvHexText${ci}`);
+    if (nameEl) cv.name = nameEl.value;
+    if (hexEl)  cv.hex  = hexEl.value;
+  });
+}
+
 async function uploadColorImage(input, ci) {
   let file = input.files[0]; if(!file) return;
+  syncColorDataFromDOM();
   let url = await uploadToStorage(file, 'products');
   colorVariantsData[ci].images.push(url);
   renderColorVariantsAdmin();
@@ -1243,12 +1267,14 @@ async function uploadColorImage(input, ci) {
 function addColorImageUrl(ci) {
   let inp = document.getElementById(`cvUrlInput${ci}`);
   let url = inp.value.trim(); if(!url) return;
+  syncColorDataFromDOM();
   colorVariantsData[ci].images.push(url);
   inp.value = '';
   renderColorVariantsAdmin();
 }
 
 function removeColorImage(ci, ii) {
+  syncColorDataFromDOM();
   colorVariantsData[ci].images.splice(ii, 1);
   renderColorVariantsAdmin();
 }
@@ -1288,7 +1314,7 @@ Object.assign(window, {
   renderAdminProductList, addProductMedia, uploadProductMedia, addSpecRow,
   editProduct, cancelProductEdit, saveProduct, deleteProduct,
   addColorVariant, removeColorVariant, uploadColorImage, addColorImageUrl, removeColorImage,
-  updateSwatchPreview, syncHexInput,
+  updateSwatchPreview, syncHexInput, syncColorDataFromDOM,
   selectDetailColor, selectDetailImg,
 });
 

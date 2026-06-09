@@ -747,4 +747,569 @@ footer { background: var(--bg-card); padding: 48px 24px; margin-top: 40px; text-
         <input type="text" placeholder="Search products..." id="searchInput" oninput="handleSearch(this.value)">
       </div>
       <div class="header-icons">
-        <button class="icon-btn" oncl
+        <button class="icon-btn" onclick="goWish()">❤️ Wishlist <span class="wish-badge" id="wishBadge">0</span></button>
+        <button class="icon-btn" onclick="toggleCart()">🛒 Cart <span class="badge" id="cartBadge">0</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="desktop-nav-wrapper">
+    <nav class="desktop-nav">
+      <button class="desktop-nav-btn" onclick="filterCat('All'); goShop()">✨ SHOP ALL</button>
+      <button class="desktop-nav-btn" onclick="filterCat('Earbuds'); goShop()">🎧 EARBUDS</button>
+      <button class="desktop-nav-btn" onclick="filterCat('Headphones'); goShop()">🎵 HEADPHONES</button>
+      <button class="desktop-nav-btn" onclick="filterCat('Speakers'); goShop()">🔊 SPEAKERS</button>
+      <button class="desktop-nav-btn" onclick="filterCat('Power Banks'); goShop()">🔋 POWER BANKS</button>
+      <button class="desktop-nav-btn" onclick="filterCat('Chargers'); goShop()">⚡ CHARGERS</button>
+      <button class="desktop-nav-btn" onclick="filterCat('Smartwatches'); goShop()">⌚ SMARTWATCHES</button>
+      <button class="desktop-nav-btn" onclick="filterCat('Cables'); goShop()">🔗 CABLES</button>
+    </nav>
+  </div>
+</header>
+
+<div class="cart-sidebar" id="cartSidebar">
+  <div style="display:flex; justify-content:space-between; margin-bottom:20px;"><h3>Your Cart</h3><span onclick="toggleCart()" style="cursor:pointer; font-size:24px;">✕</span></div>
+  <div id="cartSidebarContent"></div>
+</div>
+
+<div id="pg-home" class="page active">
+  <div class="hero"><div class="hero-slider" id="heroSlider"></div><button class="hero-arrow hero-arrow-left" onclick="heroSlide(-1)">←</button><button class="hero-arrow hero-arrow-right" onclick="heroSlide(1)">→</button><div class="hero-dots" id="heroDots"></div></div>
+  <div class="promo-cards-inner" id="promoCardsInner"></div>
+  <div class="page-container">
+    <section class="section"><div class="section-header"><div class="section-title">BESTSELLERS</div><span class="see-all" onclick="goShop()">View All →</span></div><div class="products-grid" id="homeGrid"></div></section>
+  </div>
+  <div id="featureBannerWrap"></div>
+  <div class="page-container">
+    <section class="section"><div class="section-header"><div class="section-title">NEW ARRIVALS</div><span class="see-all" onclick="filterCat('New'); goShop()">See All →</span></div><div class="products-grid" id="newGrid"></div></section>
+    <section><div class="section-header"><div class="section-title">SHOP BY CATEGORY</div></div><div class="spotlight-grid" id="spotlightGrid"></div></section>
+  </div>
+  <div class="promise-strip"><div class="promise-inner" id="promiseInner"></div></div>
+  <footer><div class="footer-inner"><div class="logo" style="font-size:20px;">accessories<span style="color:var(--accent);">.</span>pk</div><div class="footer-copy" style="margin-top:12px; font-size:12px; color:var(--text-muted);">© 2026 — Premium tech accessories, crafted in the shadows.</div></div></footer>
+</div>
+
+<div id="pg-shop" class="page"><div class="page-container"><section style="padding:40px 0 80px;"><div class="section-header"><div class="section-title">ALL PRODUCTS</div><span id="prodCount"></span></div><div class="products-grid" id="shopGrid"></div><div id="noResults" style="display:none; text-align:center; padding:60px; color:var(--text-muted);">No products found.</div></section></div></div>
+<div id="pg-detail" class="page"><div class="page-container"><div class="detail-page" id="detailContent"></div></div></div>
+<div id="pg-cart" class="page"><div class="page-container"><div class="section-header"><div class="section-title">Shopping Bag</div></div><div id="cartContent"></div></div></div>
+<div id="pg-wish" class="page"><div class="page-container"><div class="section-header"><div class="section-title">Wishlist</div></div><div id="wishContent"></div></div></div>
+
+<div id="pg-admin-login" class="page"><div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg-dark);"><div style="background:var(--bg-card); padding:40px; border-radius:20px; width:100%; max-width:360px; text-align:center; border:1px solid var(--border);"><div class="logo" style="font-size:28px;">accessories<span style="color:var(--accent);">.</span>pk</div><div style="margin:15px 0 20px; color:var(--text-muted);">Admin Access</div><input id="adminPwd" type="password" placeholder="Enter Password" class="admin-input" onkeydown="if(event.key==='Enter') checkAdminLogin()"><button class="btn-primary" onclick="checkAdminLogin()" style="width:100%;">Login</button><div style="margin-top:15px; font-size:11px; color:var(--text-muted);">Password: admin123</div><div id="adminLoginError" style="color:var(--accent); font-size:12px; margin-top:10px; min-height:24px;"></div></div></div></div>
+
+<div id="pg-admin" class="page">
+  <div class="admin-topbar" style="background:var(--bg-card); padding:12px 24px; display:flex; justify-content:space-between; border-bottom:1px solid var(--accent);">
+    <span>⚡ ADMIN PANEL (Firebase Real-Time)</span>
+    <div><span id="fbStatus" style="color:#4ade80;">✓ Local Mode Active</span><button onclick="goHome()" style="margin-left:15px; background:var(--accent); border:none; padding:5px 15px; border-radius:6px; color:white; cursor:pointer;">Exit</button></div>
+  </div>
+  
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchAdminTab('media')">🎬 Banners & Categories</button>
+    <button class="admin-tab" onclick="switchAdminTab('products')">📦 Products Management</button>
+  </div>
+
+  <div id="adminTabMedia" class="admin-container">
+    <div class="admin-card"><div class="admin-card-header">🎬 Hero Banner Images (Homepage Slider)</div><div class="admin-card-body"><div id="sliderAdminList"></div><button class="slider-add-btn" onclick="addSliderRow()">+ Add Banner Image</button><div style="margin-top:15px;"><button class="btn-primary" onclick="saveSliderImages()">Save Hero Banners</button></div></div></div>
+    
+    <div class="admin-card"><div class="admin-card-header">🌟 Feature Banner (Buy Charger → Free Cable Offer)</div><div class="admin-card-body"><div class="slider-img-row"><div class="slider-img-preview" id="fbPreview"><img id="fbPreviewImg" src=""></div><input class="slider-img-url" id="fbImgUrl" placeholder="Image URL"><label class="upload-btn">📁 Upload File<input type="file" accept="image/*" onchange="uploadFeatureBanner(this)"></label></div><input class="admin-input" id="fbEyebrow" placeholder="Eyebrow Text"><input class="admin-input" id="fbHeading" placeholder="Headline"><textarea class="admin-input" id="fbSub" placeholder="Subtext / Description" rows="2"></textarea><input class="admin-input" id="fbBtn" placeholder="Button Text"><button class="btn-primary" onclick="saveFeatureBanner()">Save Feature Banner</button></div></div>
+    
+    <div class="admin-card"><div class="admin-card-header">🖼️ Shop by Category Cards</div><div class="admin-card-body"><div id="spotlightAdminList"></div><button class="slider-add-btn" onclick="addSpotlightRow()">+ Add Category Card</button><div style="margin-top:15px;"><button class="btn-primary" onclick="saveSpotlightCards()">Save Categories</button></div></div></div>
+    
+    <div class="admin-card"><div class="admin-card-header">✨ Brand Promise Strip</div><div class="admin-card-body"><div id="promiseAdminList"></div><button class="slider-add-btn" onclick="addPromiseRow()">+ Add Promise Item</button><div style="margin-top:15px;"><button class="btn-primary" onclick="savePromiseStrip()">Save Promise Strip</button></div></div></div>
+    
+    <div class="admin-card"><div class="admin-card-header">📢 Announcement Bar (Top Marquee)</div><div class="admin-card-body"><div id="announcementAdminList"></div><button class="slider-add-btn" onclick="addAnnouncementRow()">+ Add Message</button><div style="margin-top:15px;"><button class="btn-primary" onclick="saveAnnouncements()">Save Announcements</button></div></div></div>
+  </div>
+
+  <div id="adminTabProducts" class="admin-container" style="display:none;">
+    <div class="admin-stats" style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
+      <div class="stat-card" style="background:var(--bg-card); padding:20px; border-radius:12px; border-left:3px solid var(--accent);"><div class="stat-num" id="statTotal" style="font-size:28px; font-weight:700;">0</div><div style="color:var(--text-muted);">Total Products</div></div>
+      <div class="stat-card" style="background:var(--bg-card); padding:20px; border-radius:12px; border-left:3px solid #1a4a7a;"><div class="stat-num" id="statNew" style="font-size:28px; font-weight:700;">0</div><div style="color:var(--text-muted);">New Arrivals</div></div>
+      <div class="stat-card" style="background:var(--bg-card); padding:20px; border-radius:12px; border-left:3px solid #e67e22;"><div class="stat-num" id="statHot" style="font-size:28px; font-weight:700;">0</div><div style="color:var(--text-muted);">Hot Items</div></div>
+    </div>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+      <div class="admin-card"><div class="admin-card-header" id="formTitle">Add New Product</div><div class="admin-card-body"><input id="prodName" placeholder="Product Name *" class="admin-input"><input id="prodBrand" placeholder="Brand *" class="admin-input"><select id="prodCat" class="admin-select"><option value="">Select Category *</option><option>Earbuds</option><option>Headphones</option><option>Speakers</option><option>Power Banks</option><option>Chargers</option><option>Smartwatches</option><option>Cables</option></select><input id="prodPrice" type="number" placeholder="Price (Rs.) *" class="admin-input"><select id="prodBadge" class="admin-select"><option value="">No Badge</option><option value="new">New Arrival</option><option value="hot">Hot</option><option value="gift">Free Gift Inside</option></select><div class="admin-card-header" style="margin:10px 0 0 0; background:var(--bg-dark);">🎨 Color Variants <span style="font-size:11px; font-weight:400; color:var(--text-muted);">(each color gets its own images)</span></div>
+<div id="colorVariantsList"></div>
+<button class="slider-add-btn" onclick="addColorVariant()">+ Add Color Variant</button>
+<div class="admin-card-header" style="margin:10px 0 0 0; background:var(--bg-dark);">📸 Default Images <span style="font-size:11px; font-weight:400; color:var(--text-muted);">(shown when no color selected)</span></div><div id="productMediaList"></div><button class="slider-add-btn" onclick="addProductMedia()">+ Add Image</button><textarea id="prodDesc" placeholder="Product Description *" class="admin-textarea" rows="3"></textarea><div id="specsList"></div><button class="slider-add-btn" onclick="addSpecRow()">+ Add Specification</button><div style="display:flex; gap:10px; margin-top:16px;"><button class="btn-primary" onclick="saveProduct()">Save Product</button><button id="cancelEditBtn" onclick="cancelProductEdit()" style="display:none; background:var(--bg-surface); border:1px solid var(--border); color:white; padding:12px; border-radius:8px; cursor:pointer;">Cancel</button></div></div></div>
+      
+      <div class="admin-card"><div class="admin-card-header">📦 Product Inventory</div><div class="admin-card-body"><input type="text" id="adminSearch" placeholder="Search products..." class="admin-input" oninput="renderAdminProductList()"><div id="adminProductList"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav"><div class="nav-item" onclick="goHome()">Home</div><div class="nav-item" onclick="goShop()">Shop</div><div class="nav-item" onclick="goCart()">Cart</div><div class="nav-item" onclick="goWish()">Wishlist</div></nav>
+
+<div class="wa-overlay" id="waOverlay" onclick="if(event.target===this) closeWAModal()"><div class="wa-modal"><h3>Complete Order</h3><div id="waPreview" style="margin:15px 0; padding:10px; background:var(--bg-surface); border-radius:8px;"></div><input id="waName" placeholder="Full Name *" class="wa-input"><input id="waPhone" placeholder="WhatsApp Number *" class="wa-input"><input id="waAddress" placeholder="Delivery Address *" class="wa-input"><button class="wa-btn" onclick="sendToWhatsApp()">📱 Send Order on WhatsApp</button><button onclick="closeWAModal()" style="margin-top:12px; width:100%; padding:10px; background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; cursor:pointer;">Cancel</button></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// ============================================================
+//  accessories.pk  —  Firebase Firestore Real-Time Backend
+// ============================================================
+//
+//  HOW TO SET UP YOUR FIREBASE PROJECT (one-time, 5 minutes):
+//  -----------------------------------------------------------
+//  1. Go to https://console.firebase.google.com
+//  2. Click "Add project" → give it any name → Continue
+//  3. Disable Google Analytics if you like → Create project
+//  4. In the left sidebar click "Firestore Database" → Create database
+//     → Start in TEST MODE → choose a region → Enable
+//  5. In the left sidebar click ⚙️ (Project Settings) → "Your apps"
+//     → click the </> (Web) icon → Register app (name it anything)
+//     → Copy the firebaseConfig object values below
+//  6. Save this file and open it in a browser — done!
+//
+//  PASTE YOUR VALUES BELOW:
+// ============================================================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyDV0vixhWwV8IsPgOBvOHlW2YwyoGESrh8",
+  authDomain:        "accessories-pk.firebaseapp.com",
+  projectId:         "accessories-pk",
+  storageBucket:     "accessories-pk.firebasestorage.app",
+  messagingSenderId: "273150355491",
+  appId:             "1:273150355491:web:4d6eebd5d71d45acb4e996"
+};
+
+// ============================================================
+// ⚠️ STOP HERE — fill in the config above before continuing
+// ============================================================
+
+let fbApp, db;
+let fbConnected = false;
+
+async function initFirebase() {
+  try {
+    fbApp = initializeApp(firebaseConfig);
+    db = getFirestore(fbApp);
+    // Quick connectivity test
+    await getDoc(doc(db, 'store', 'products'));
+    fbConnected = true;
+    document.getElementById('fbStatus').innerHTML = '🟢 Firebase Connected';
+    document.getElementById('fbStatus').style.color = '#4ade80';
+  } catch(e) {
+    fbConnected = false;
+    document.getElementById('fbStatus').innerHTML = '🔴 Firebase Error — check config';
+    document.getElementById('fbStatus').style.color = '#f87171';
+    console.error('Firebase init error:', e);
+  }
+}
+
+// ---- Firestore helpers ----
+async function fsGet(docId, def) {
+  if (!db) return def;
+  try {
+    const snap = await getDoc(doc(db, 'store', docId));
+    return snap.exists() ? snap.data().value : def;
+  } catch(e) { return def; }
+}
+
+async function fsSave(docId, value) {
+  if (!db) { saveToLocal(docId, value); return; }
+  try {
+    await setDoc(doc(db, 'store', docId), { value });
+    saveToLocal(docId, value); // mirror locally for offline fallback
+  } catch(e) { console.error('Firestore save failed', e); saveToLocal(docId, value); }
+}
+
+// Real-time listener — fires immediately and on every remote change
+function fsListen(docId, callback) {
+  if (!db) return;
+  onSnapshot(doc(db, 'store', docId), (snap) => {
+    if (snap.exists()) callback(snap.data().value);
+  });
+}
+
+// ---- localStorage fallback (used when offline / before Firebase loads) ----
+function saveToLocal(key, data) { try { localStorage.setItem(`apk_${key}`, JSON.stringify(data)); } catch(e){} }
+function loadFromLocal(key, def) { try { const s = localStorage.getItem(`apk_${key}`); return s ? JSON.parse(s) : def; } catch(e) { return def; } }
+
+// ---- App state ----
+let products = [], cart = [], wishlist = new Set();
+let currentFilter = 'All', searchQuery = '', editingProductId = null;
+let selectedCity = 'karachi';
+let heroIndex = 0, heroTimer = null;
+const ADMIN_PASSWORD = 'admin123';
+const WA_NUMBER = '923198604987';
+const DELIVERY_KARACHI = 200, DELIVERY_OUTSIDE = 250, FREE_SHIPPING = 4999;
+
+// ---- Live data variables (initialized from local cache, then Firestore overwrites) ----
+let heroImages = loadFromLocal('heroImages', [
+  { url: 'https://placehold.co/1200x500/1a1a1a/ff6b6b?text=Premium+Audio', title: 'Premium Audio Experience' },
+  { url: 'https://placehold.co/1200x500/111111/ffffff?text=Power+Your+Day', title: 'Power Your Day' }
+]);
+
+let featureBanner = loadFromLocal('featureBanner', {
+  img: 'https://placehold.co/1200x400/0a0a0a/ff6b6b?text=Special+Offer',
+  eyebrow: '🔥 LIMITED OFFER',
+  heading: 'Buy Any Charger → Get Data Cable FREE',
+  sub: 'Purchase any charger from our collection and receive a premium braided data cable absolutely free! Valid while stocks last.',
+  btn: 'Shop Chargers Now →'
+});
+
+let spotlightCards = loadFromLocal('spotlightCards', [
+  { img: 'https://placehold.co/400x500/1a1a1a/ffffff?text=Earbuds', cat: 'Audio', name: 'Earbuds & Headphones', filter: 'Earbuds' },
+  { img: 'https://placehold.co/400x500/1a1a1a/ffffff?text=Power+Banks', cat: 'Power', name: 'Power Banks', filter: 'Power Banks' },
+  { img: 'https://placehold.co/400x500/1a1a1a/ffffff?text=Speakers', cat: 'Audio', name: 'Speakers', filter: 'Speakers' },
+  { img: 'https://placehold.co/400x500/1a1a1a/ffffff?text=Cables', cat: 'Essentials', name: 'Cables & Chargers', filter: 'Chargers' }
+]);
+
+let promiseItems = loadFromLocal('promiseItems', [
+  { icon: '🚚', title: 'Fast Delivery', sub: 'Karachi same-day, nationwide 1–3 days' },
+  { icon: '💳', title: 'Cash on Delivery', sub: 'Pay when your order arrives' },
+  { icon: '↩', title: '7-Day Returns', sub: 'Hassle-free return policy' },
+  { icon: '✓', title: '100% Genuine', sub: 'Authentic products guaranteed' }
+]);
+
+let announcements = loadFromLocal('announcements', [
+  { text: '🔥 Buy Any Charger → Get a FREE Data Cable!' },
+  { text: '🚚 Free Delivery in Karachi on orders over Rs. 4,999' },
+  { text: '💵 Cash on Delivery Available' }
+]);
+
+const defaultProducts = [
+  { id: 1, name: "Fast Charger 65W", brand: "ChargePro", cat: "Chargers", price: 2499, badge: "hot", rating: 4.8, reviews: 312, desc: "GaN fast charger for all devices.", specs: [["Output", "65W"], ["Ports", "USB-C x 2"]], images: ["https://placehold.co/600x600/1a1a1a/ff6b6b?text=Charger"] },
+  { id: 2, name: "Braided USB-C Cable", brand: "CableMaster", cat: "Cables", price: 499, badge: "new", rating: 4.7, reviews: 400, desc: "Durable braided cable 2m length.", specs: [["Length", "2m"], ["Type", "USB-C to USB-C"]], images: ["https://placehold.co/600x600/1a1a1a/ff6b6b?text=Cable"] },
+  { id: 3, name: "Wireless Charger", brand: "PowerPad", cat: "Chargers", price: 1899, badge: "hot", rating: 4.6, reviews: 278, desc: "15W fast wireless charging pad.", specs: [["Output", "15W"], ["Compatibility", "Qi-enabled"]], images: ["https://placehold.co/600x600/1a1a1a/ff6b6b?text=Wireless"] },
+  { id: 4, name: "Car Charger", brand: "DriveCharge", cat: "Chargers", price: 1299, rating: 4.5, reviews: 189, desc: "Dual port car charger 36W.", specs: [["Ports", "2x USB-C"], ["Output", "36W"]], images: ["https://placehold.co/600x600/1a1a1a/ff6b6b?text=Car+Charger"] }
+];
+
+async function loadProducts() {
+  // Show default products immediately so page is never blank
+  if (!products.length) { products = loadFromLocal('products', defaultProducts); renderAll(); }
+
+  // 1. Load from Firestore (falls back to local cache if offline)
+  // Set a timeout - if Firebase takes >5s, just use defaults
+  let saved = null;
+  try {
+    const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
+    saved = await Promise.race([fsGet('products', null), timeoutPromise]);
+  } catch(e) {
+    saved = loadFromLocal('products', defaultProducts);
+    document.getElementById('fbStatus').innerHTML = '🔴 Firebase Error — using local data';
+    document.getElementById('fbStatus').style.color = '#f87171';
+  }
+  if (saved && saved.length) products = saved;
+  else { products = defaultProducts; await fsSave('products', products); }
+  renderAll();
+
+  // 2. Attach real-time listeners so ALL visitors see updates instantly
+  fsListen('products', (val) => { if(val) { products = val; saveToLocal('products', val); renderAll(); } });
+  fsListen('heroImages', (val) => { if(val) { heroImages = val; saveToLocal('heroImages', val); renderHeroSlider(); renderSliderAdmin(); } });
+  fsListen('featureBanner', (val) => { if(val) { featureBanner = val; saveToLocal('featureBanner', val); renderFeatureBanner(); } });
+  fsListen('spotlightCards', (val) => { if(val) { spotlightCards = val; saveToLocal('spotlightCards', val); renderSpotlight(); renderSpotlightAdmin(); } });
+  fsListen('promiseItems', (val) => { if(val) { promiseItems = val; saveToLocal('promiseItems', val); renderPromoCards(); renderPromiseStrip(); renderPromiseAdmin(); } });
+  fsListen('announcements', (val) => { if(val) { announcements = val; saveToLocal('announcements', val); renderAnnouncementBar(); renderAnnouncementAdmin(); } });
+}
+
+function renderAll() { renderHome(); if (activePage === 'shop') renderShop(); renderAdminProductList(); updateBadges(); }
+
+function getProductImage(p) { return (p.images && p.images[0]) ? p.images[0] : 'https://placehold.co/600x600/1a1a1a/ff6b6b?text=Cable'; }
+
+function cardHTML(p) {
+  let img = getProductImage(p);
+  let colors = p.colors || [];
+  let colorDots = colors.length > 0 ? `<div style="display:flex;gap:5px;align-items:center;">${colors.slice(0,5).map(c=>`<div style="width:12px;height:12px;border-radius:50%;background:${c.hex||'#888'};border:1px solid rgba(255,255,255,0.25);" title="${c.name}"></div>`).join('')}${colors.length>5?`<span style="font-size:10px;color:var(--text-muted);">+${colors.length-5}</span>`:''}</div>` : '<span></span>';
+  return `<div class="prod-card" onclick="showDetail(${p.id})"><div class="prod-img-wrap">${p.badge ? `<span class="prod-badge badge-${p.badge}">${p.badge === 'gift' ? 'GIFT' : p.badge.toUpperCase()}</span>` : ''}<button class="wish-btn ${wishlist.has(p.id) ? 'liked' : ''}" onclick="toggleWish(event,${p.id})">♥</button><img src="${img}" onerror="this.src='https://placehold.co/600x600/1a1a1a/ff6b6b?text=Product'"></div><div class="prod-info"><div class="prod-brand">${p.brand}</div><div class="prod-name">${p.name}</div><div class="price-now">Rs.${p.price.toLocaleString()}</div><div class="prod-bottom">${colorDots}<button class="add-btn" onclick="event.stopPropagation(); addToCart(${p.id})">+</button></div></div></div>`;
+}
+
+function addToCart(id) { let idx = cart.findIndex(c => c.id === id); if (idx !== -1) cart[idx].qty++; else cart.push({ id, qty: 1 }); updateBadges(); renderCart(); renderCartSidebar(); saveToLocal('cart', cart); showToast('Added to cart'); }
+
+function toggleWish(e, id) { e.stopPropagation(); wishlist.has(id) ? wishlist.delete(id) : wishlist.add(id); updateBadges(); renderWish(); renderHome(); renderShop(); saveToLocal('wishlist', Array.from(wishlist)); }
+
+function updateBadges() { document.getElementById('cartBadge').innerText = cart.reduce((s,c)=>s+c.qty,0); let wb = document.getElementById('wishBadge'); if (wishlist.size) { wb.style.display = 'inline-flex'; wb.innerText = wishlist.size; } else wb.style.display = 'none'; }
+
+function showToast(msg) { let t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2500); }
+
+function checkAdminLogin() { 
+  let pwd = document.getElementById('adminPwd').value; 
+  let errorDiv = document.getElementById('adminLoginError');
+  if(pwd === ADMIN_PASSWORD) { 
+    errorDiv.innerText = '';
+    sessionStorage.setItem('apk_admin','1'); 
+    showPage('admin'); 
+    renderSliderAdmin(); renderSpotlightAdmin(); renderPromiseAdmin(); renderAnnouncementAdmin(); updateFBPreview(); 
+  } else { 
+    errorDiv.innerText = '❌ Incorrect password. Access denied.'; 
+    document.getElementById('adminPwd').value = '';
+  } 
+}
+
+// Image upload: converts to base64 for preview only.
+// For production use Firebase Storage or Cloudinary to get a public URL.
+function uploadToStorage(file, folder) { return new Promise((resolve) => { let reader = new FileReader(); reader.onload = (e) => resolve(e.target.result); reader.readAsDataURL(file); }); }
+
+function renderHeroSlider() { if (!heroImages.length) { document.getElementById('heroSlider').innerHTML = '<div class="hero-placeholder" style="color:white; text-align:center; padding:100px;">Add banners in Admin</div>'; return; }
+  let slider = document.getElementById('heroSlider'); slider.innerHTML = heroImages.map((img,i)=>`<div class="hero-slide${i===heroIndex?' active':''}"><img src="${img.url}" onerror="this.src='https://placehold.co/1200x500/111111/ffffff?text=Power+Your+Day'"><div class="hero-slide-overlay"></div><div class="hero-content"><span class="hero-kicker">Pakistan's #1 Tech Store</span><h1>${img.title||'Premium Accessories'}</h1><p>Buy Charger → Get FREE Cable!</p><button class="btn-primary" onclick="goShop()">Shop Now →</button></div></div>`).join('');
+  document.getElementById('heroDots').innerHTML = heroImages.map((_,i)=>`<button class="hero-dot${i===heroIndex?' active':''}" onclick="heroGoTo(${i})"></button>`).join('');
+  clearInterval(heroTimer); if(heroImages.length>1) heroTimer = setInterval(()=>heroSlide(1), 5000);
+}
+
+function renderSpotlight() { document.getElementById('spotlightGrid').innerHTML = spotlightCards.map(c=>`<div class="spotlight-card" onclick="filterCat('${c.filter}'); goShop()"><img src="${c.img}" onerror="this.src='https://placehold.co/400x500/1a1a1a/ffffff?text=Earbuds'"><div class="sc-label"><div class="sc-cat">${c.cat}</div><div class="sc-name">${c.name}</div></div></div>`).join(''); }
+
+function renderFeatureBanner() { let f = featureBanner; document.getElementById('featureBannerWrap').innerHTML = `<div class="feature-banner"><img src="${f.img}" onerror="this.src='https://placehold.co/1200x400/0a0a0a/ff6b6b?text=Special+Offer'"><div class="fb-overlay"></div><div class="fb-content"><div class="fb-eyebrow">${f.eyebrow}</div><div class="fb-heading">${f.heading}</div><div class="fb-sub">${f.sub}</div><button class="fb-btn" onclick="goShop()">${f.btn} →</button></div></div>`; }
+
+function renderPromoCards() { document.getElementById('promoCardsInner').innerHTML = promiseItems.map(p=>`<div class="promo-card-item"><span class="pci-icon">${p.icon}</span><div class="pci-text"><strong>${p.title}</strong><span>${p.sub}</span></div></div>`).join(''); }
+function renderPromiseStrip() { document.getElementById('promiseInner').innerHTML = promiseItems.map(p=>`<div class="promise-item"><div class="promise-icon">${p.icon}</div><div class="promise-title">${p.title}</div><div class="promise-sub">${p.sub}</div></div>`).join(''); }
+function renderAnnouncementBar() { let bar = document.getElementById('topbarTrack'); let items = announcements.length ? announcements : [{text:'accessories.pk'}]; let html = [...items,...items].map(it=>`<span class="topbar-item">${it.text}</span><span class="topbar-sep">·</span>`).join(''); bar.innerHTML = html; }
+
+function renderHome() { let best = products.slice().sort((a,b)=>(b.reviews||0)-(a.reviews||0)).slice(0,4); let newArr = products.filter(p=>p.badge==='new').slice(0,4); document.getElementById('homeGrid').innerHTML = best.map(cardHTML).join(''); document.getElementById('newGrid').innerHTML = newArr.map(cardHTML).join(''); }
+function renderShop() { let filtered = products; if (currentFilter === 'New') filtered = products.filter(p=>p.badge==='new'); else if (currentFilter === 'search' && searchQuery) filtered = products.filter(p=>p.name.toLowerCase().includes(searchQuery)||p.brand.toLowerCase().includes(searchQuery)); else if (currentFilter !== 'All' && currentFilter !== 'search') filtered = products.filter(p=>p.cat === currentFilter); document.getElementById('shopGrid').innerHTML = filtered.map(cardHTML).join(''); document.getElementById('noResults').style.display = filtered.length ? 'none' : 'block'; document.getElementById('prodCount').innerHTML = filtered.length + ' items'; }
+function renderWish() { let items = products.filter(p=>wishlist.has(p.id)); document.getElementById('wishContent').innerHTML = items.length ? `<div class="products-grid">${items.map(cardHTML).join('')}</div>` : '<div style="text-align:center; padding:60px;">❤️ Wishlist is empty</div>'; }
+function renderCart() { let items = cart.map(c => products.find(p=>p.id===c.id)).filter(Boolean); let subtotal = items.reduce((s,i)=>s + i.price * (cart.find(c=>c.id===i.id)?.qty||1), 0); let delivery = (selectedCity === 'karachi' && subtotal >= FREE_SHIPPING) ? 0 : (selectedCity === 'karachi' ? DELIVERY_KARACHI : DELIVERY_OUTSIDE); let total = subtotal + delivery; let html = items.map(i => { let qty = cart.find(c=>c.id===i.id)?.qty||1; return `<div class="cart-item"><img class="cart-item-image" src="${getProductImage(i)}"><div style="flex:1"><strong>${i.name}</strong><div>Rs.${i.price}</div><div><button onclick="changeQty(${i.id},-1)">-</button> ${qty} <button onclick="changeQty(${i.id},1)">+</button></div></div><div>Rs.${(i.price*qty).toLocaleString()}</div></div>`; }).join(''); let citySelector = `<div class="city-selector"><button class="city-btn ${selectedCity==='karachi'?'active':''}" onclick="setCity('karachi')">📍 Karachi (Rs.${DELIVERY_KARACHI})</button><button class="city-btn ${selectedCity==='outside'?'active':''}" onclick="setCity('outside')">🏙️ Other (Rs.${DELIVERY_OUTSIDE})</button></div>`; if (!items.length) document.getElementById('cartContent').innerHTML = '<div style="text-align:center; padding:60px;">Cart is empty</div>'; else document.getElementById('cartContent').innerHTML = citySelector + html + `<div style="margin-top:20px;"><strong>Subtotal: Rs.${subtotal}</strong><br>Delivery: ${delivery===0?'FREE':`Rs.${delivery}`}<br><strong>Total: Rs.${total}</strong><br><button class="checkout-btn" onclick="doCheckout()">Proceed to Checkout →</button></div>`; }
+function renderCartSidebar() { let items = cart.map(c => products.find(p=>p.id===c.id)).filter(Boolean); let subtotal = items.reduce((s,i)=>s + i.price * (cart.find(c=>c.id===i.id)?.qty||1), 0); let delivery = (selectedCity === 'karachi' && subtotal >= FREE_SHIPPING) ? 0 : (selectedCity === 'karachi' ? DELIVERY_KARACHI : DELIVERY_OUTSIDE); let total = subtotal + delivery; let html = items.map(i => { let qty = cart.find(c=>c.id===i.id)?.qty||1; return `<div class="cart-item"><img class="cart-item-image" src="${getProductImage(i)}"><div style="flex:1"><strong>${i.name}</strong><div>Rs.${i.price}</div><div><button onclick="changeQty(${i.id},-1)">-</button> ${qty} <button onclick="changeQty(${i.id},1)">+</button></div></div><div>Rs.${(i.price*qty).toLocaleString()}</div></div>`; }).join(''); document.getElementById('cartSidebarContent').innerHTML = html + `<div><strong>Total: Rs.${total}</strong></div><button class="checkout-btn" onclick="doCheckout();toggleCart();">Checkout →</button>`; }
+function changeQty(id, delta) { let idx = cart.findIndex(c=>c.id===id); if(idx!==-1) { cart[idx].qty += delta; if(cart[idx].qty<=0) cart.splice(idx,1); updateBadges(); renderCart(); renderCartSidebar(); saveToLocal('cart', cart); } }
+function setCity(city) { selectedCity = city; renderCart(); renderCartSidebar(); }
+function doCheckout() { if(!cart.length) return; let items = cart.map(c=>products.find(p=>p.id===c.id)).filter(Boolean); let subtotal = items.reduce((s,i)=>s + i.price * (cart.find(c=>c.id===i.id)?.qty||1),0); let delivery = (selectedCity === 'karachi' && subtotal >= FREE_SHIPPING) ? 0 : (selectedCity === 'karachi' ? DELIVERY_KARACHI : DELIVERY_OUTSIDE); document.getElementById('waPreview').innerHTML = `<div>${items.map(i=>`${i.name} x${cart.find(c=>c.id===i.id)?.qty} = Rs.${i.price * (cart.find(c=>c.id===i.id)?.qty||1)}`).join('<br>')}</div><div>Subtotal: Rs.${subtotal}</div><div>Delivery: ${delivery===0?'FREE':`Rs.${delivery}`}</div><div><strong>Total: Rs.${subtotal+delivery}</strong></div>`; document.getElementById('waOverlay').classList.add('open'); }
+function sendToWhatsApp() { let name = document.getElementById('waName').value.trim(); let phone = document.getElementById('waPhone').value.trim(); let addr = document.getElementById('waAddress').value.trim(); if(!name||!phone||!addr) { showToast('Fill all fields'); return; } let items = cart.map(c=>products.find(p=>p.id===c.id)).filter(Boolean); let subtotal = items.reduce((s,i)=>s + i.price * (cart.find(c=>c.id===i.id)?.qty||1),0); let delivery = (selectedCity === 'karachi' && subtotal >= FREE_SHIPPING) ? 0 : (selectedCity === 'karachi' ? DELIVERY_KARACHI : DELIVERY_OUTSIDE); let msg = `🛍 *NEW ORDER - accessories.pk*\n\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${addr}\n\n*Items:*\n${items.map(i=>`• ${i.name} x${cart.find(c=>c.id===i.id)?.qty} = Rs.${i.price * (cart.find(c=>c.id===i.id)?.qty||1)}`).join('\n')}\n\n*Subtotal:* Rs.${subtotal}\n*Delivery:* ${delivery===0?'FREE':`Rs.${delivery}`}\n*Total:* Rs.${subtotal+delivery}`; window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,'_blank'); cart = []; updateBadges(); renderCart(); renderCartSidebar(); closeWAModal(); saveToLocal('cart', cart); showToast('Order sent!'); }
+function closeWAModal() { document.getElementById('waOverlay').classList.remove('open'); document.getElementById('waName').value = ''; document.getElementById('waPhone').value = ''; document.getElementById('waAddress').value = ''; }
+function showDetail(id) {
+  let p = products.find(x=>x.id===id); if(!p) return;
+  let colors = p.colors || [];
+  let hasColors = colors.length > 0;
+  // Start with first color's images or default images
+  let initImgs = (hasColors && colors[0].images && colors[0].images.length) ? colors[0].images : (p.images && p.images.length ? p.images : ['https://placehold.co/600x600/1a1a1a/ff6b6b?text=Product']);
+  let initColorName = hasColors ? colors[0].name : '';
+
+  let swatchesHTML = hasColors ? `
+    <div class="detail-colors">
+      <div class="detail-colors-label">Color</div>
+      <div class="detail-swatches" id="detailSwatches">
+        ${colors.map((c,i)=>`
+          <div class="detail-swatch ${i===0?'active':''}" style="background:${c.hex||'#888'};"
+               onclick="selectDetailColor(${id},${i})"
+               title="${c.name}">
+            <div class="detail-swatch-tooltip">${c.name}</div>
+          </div>`).join('')}
+      </div>
+      <div class="selected-color-name" id="selectedColorName">${initColorName}</div>
+    </div>` : '';
+
+  let thumbsHTML = initImgs.map((src,i)=>`<img class="detail-thumb ${i===0?'active':''}" src="${src}" onclick="selectDetailImg(this,'${src}')" onerror="this.src='https://placehold.co/600x600/1a1a1a/ff6b6b?text=img'">`).join('');
+
+  document.getElementById('detailContent').innerHTML = `
+    <button onclick="goShop()" style="background:none;border:none;color:var(--accent);cursor:pointer;margin-bottom:20px;font-size:15px;">← Back</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+      <div class="detail-gallery">
+        <img id="detailMainImg" class="detail-main-img" src="${initImgs[0]}" onerror="this.src='https://placehold.co/600x600/1a1a1a/ff6b6b?text=Product'">
+        <div class="detail-thumbs" id="detailThumbs">${thumbsHTML}</div>
+      </div>
+      <div>
+        <h2 style="font-size:28px;line-height:1.3;">${p.name}</h2>
+        <div style="color:var(--text-muted);margin:8px 0 4px;">${p.brand}</div>
+        <div style="font-size:26px;color:var(--accent);font-weight:700;margin:10px 0;">Rs.${p.price.toLocaleString()}</div>
+        ${swatchesHTML}
+        <p style="margin:16px 0;color:var(--text-secondary);line-height:1.7;">${p.desc||''}</p>
+        ${p.specs && p.specs.length ? `<div style="margin:16px 0;"><strong style="font-size:13px;letter-spacing:1px;text-transform:uppercase;">Specifications</strong><table style="margin-top:10px;width:100%;border-collapse:collapse;">${p.specs.map(s=>`<tr><td style="padding:6px 0;color:var(--text-muted);font-size:13px;width:45%;">${s[0]}</td><td style="padding:6px 0;font-size:13px;">${s[1]}</td></tr>`).join('')}</table></div>` : ''}
+        <button class="btn-primary" style="margin-top:10px;width:100%;padding:16px;" onclick="addToCart(${p.id}); showToast('Added to cart');">Add to Cart →</button>
+      </div>
+    </div>`;
+  showPage('detail');
+}
+
+function selectDetailColor(productId, colorIdx) {
+  let p = products.find(x=>x.id===productId); if(!p) return;
+  let colors = p.colors || []; if(!colors[colorIdx]) return;
+  let color = colors[colorIdx];
+  let imgs = (color.images && color.images.length) ? color.images : (p.images && p.images.length ? p.images : ['https://placehold.co/600x600/1a1a1a/ff6b6b?text=Product']);
+  // Update swatch active state
+  document.querySelectorAll('.detail-swatch').forEach((s,i)=>s.classList.toggle('active', i===colorIdx));
+  document.getElementById('selectedColorName').textContent = color.name;
+  // Update main image
+  let mainImg = document.getElementById('detailMainImg');
+  mainImg.style.opacity = '0';
+  setTimeout(()=>{ mainImg.src = imgs[0]; mainImg.style.opacity = '1'; }, 200);
+  // Update thumbs
+  document.getElementById('detailThumbs').innerHTML = imgs.map((src,i)=>`<img class="detail-thumb ${i===0?'active':''}" src="${src}" onclick="selectDetailImg(this,'${src}')" onerror="this.src='https://placehold.co/600x600/1a1a1a/ff6b6b?text=img'">`).join('');
+}
+
+function selectDetailImg(el, src) {
+  document.querySelectorAll('.detail-thumb').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  let mainImg = document.getElementById('detailMainImg');
+  mainImg.style.opacity = '0';
+  setTimeout(()=>{ mainImg.src = src; mainImg.style.opacity = '1'; }, 150);
+}
+
+function showPage(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(`pg-${id}`).classList.add('active'); window.scrollTo(0,0); activePage = id; }
+function goHome() { showPage('home'); renderHome(); }
+function goShop() { showPage('shop'); renderShop(); }
+function goCart() { showPage('cart'); renderCart(); }
+function goWish() { showPage('wish'); renderWish(); }
+function toggleCart() { document.getElementById('cartSidebar').classList.toggle('active'); renderCartSidebar(); }
+function filterCat(cat) { currentFilter = cat; searchQuery = ''; document.getElementById('searchInput').value = ''; if (activePage !== 'shop') goShop(); else renderShop(); }
+function handleSearch(val) { searchQuery = val.toLowerCase(); currentFilter = 'search'; if (activePage !== 'shop') goShop(); else renderShop(); }
+function heroSlide(d) { if(!heroImages.length) return; heroGoTo((heroIndex+d+heroImages.length)%heroImages.length); }
+function heroGoTo(n) { heroIndex = n; renderHeroSlider(); }
+
+function renderSliderAdmin() { document.getElementById('sliderAdminList').innerHTML = heroImages.map((img,i)=>`<div class="slider-img-row"><div class="slider-img-preview"><img src="${img.url}" onerror="this.src='https://placehold.co/60x60/1a1a1a/ff6b6b?text=img'"></div><input class="slider-img-url" value="${img.url}" id="heroUrl${i}"><input placeholder="Title" value="${img.title||''}" id="heroTitle${i}" style="flex:0.5;"><label class="upload-btn">📁 Upload<input type="file" accept="image/*" onchange="uploadHeroImage(this,${i})"></label><button onclick="removeHeroRow(${i})" style="background:none; border:none; color:var(--accent); cursor:pointer;">✕</button></div>`).join(''); }
+async function uploadHeroImage(input, idx) { let file = input.files[0]; if(!file) return; let url = await uploadToStorage(file, 'hero'); heroImages[idx].url = url; document.getElementById(`heroUrl${idx}`).value = url; document.querySelector(`#sliderAdminList .slider-img-row:nth-child(${idx+1}) .slider-img-preview img`).src = url; showToast('Uploaded'); }
+async function saveSliderImages() { heroImages = heroImages.map((_,i)=>({url:document.getElementById(`heroUrl${i}`)?.value||'', title:document.getElementById(`heroTitle${i}`)?.value||''})).filter(img=>img.url); await fsSave('heroImages', heroImages); renderHeroSlider(); showToast('Hero banners saved'); }
+function addSliderRow() { heroImages.push({url:'', title:''}); renderSliderAdmin(); }
+function removeHeroRow(i) { heroImages.splice(i,1); renderSliderAdmin(); renderHeroSlider(); fsSave('heroImages', heroImages); }
+
+function renderSpotlightAdmin() { document.getElementById('spotlightAdminList').innerHTML = spotlightCards.map((c,i)=>`<div class="slider-img-row"><div class="slider-img-preview"><img src="${c.img}" onerror="this.src='https://placehold.co/60x60/1a1a1a/ff6b6b?text=img'"></div><input class="slider-img-url" value="${c.img}" id="spotImg${i}"><label class="upload-btn">📁 Upload<input type="file" accept="image/*" onchange="uploadSpotlightImage(this,${i})"></label><input placeholder="Category" value="${c.cat}" id="spotCat${i}" style="width:100px;"><input placeholder="Name" value="${c.name}" id="spotName${i}"><select id="spotFilter${i}" style="padding:8px; background:var(--bg-dark); border:1px solid var(--border); border-radius:6px; color:white;"><option>Earbuds</option><option>Headphones</option><option>Speakers</option><option>Power Banks</option><option>Chargers</option></select><button onclick="removeSpotlightRow(${i})" style="background:none; border:none; color:var(--accent); cursor:pointer;">✕</button></div>`).join(''); }
+async function uploadSpotlightImage(input, idx) { let file = input.files[0]; if(!file) return; let url = await uploadToStorage(file, 'spotlight'); spotlightCards[idx].img = url; document.getElementById(`spotImg${idx}`).value = url; document.querySelector(`#spotlightAdminList .slider-img-row:nth-child(${idx+1}) .slider-img-preview img`).src = url; showToast('Uploaded'); }
+async function saveSpotlightCards() { spotlightCards = spotlightCards.map((_,i)=>({img:document.getElementById(`spotImg${i}`)?.value||'', cat:document.getElementById(`spotCat${i}`)?.value||'', name:document.getElementById(`spotName${i}`)?.value||'', filter:document.getElementById(`spotFilter${i}`)?.value||'Earbuds'})).filter(c=>c.img&&c.name); await fsSave('spotlightCards', spotlightCards); renderSpotlight(); showToast('Categories saved'); }
+function addSpotlightRow() { if(spotlightCards.length>=6) { showToast('Max 6 cards'); return; } spotlightCards.push({img:'', cat:'', name:'', filter:'Earbuds'}); renderSpotlightAdmin(); }
+function removeSpotlightRow(i) { spotlightCards.splice(i,1); renderSpotlightAdmin(); fsSave('spotlightCards', spotlightCards); renderSpotlight(); }
+
+function renderPromiseAdmin() { document.getElementById('promiseAdminList').innerHTML = promiseItems.map((p,i)=>`<div class="slider-img-row"><input placeholder="Icon" value="${p.icon}" id="promIcon${i}" style="width:60px;"><input placeholder="Title" value="${p.title}" id="promTitle${i}"><input placeholder="Subtitle" value="${p.sub}" id="promSub${i}"><button onclick="removePromiseRow(${i})" style="background:none; border:none; color:var(--accent); cursor:pointer;">✕</button></div>`).join(''); }
+async function savePromiseStrip() { promiseItems = promiseItems.map((_,i)=>({icon:document.getElementById(`promIcon${i}`)?.value||'', title:document.getElementById(`promTitle${i}`)?.value||'', sub:document.getElementById(`promSub${i}`)?.value||''})).filter(p=>p.title); await fsSave('promiseItems', promiseItems); renderPromoCards(); renderPromiseStrip(); showToast('Promise strip saved'); }
+function addPromiseRow() { if(promiseItems.length>=6) { showToast('Max 6 items'); return; } promiseItems.push({icon:'', title:'', sub:''}); renderPromiseAdmin(); }
+function removePromiseRow(i) { promiseItems.splice(i,1); renderPromiseAdmin(); fsSave('promiseItems', promiseItems); renderPromoCards(); renderPromiseStrip(); }
+
+function renderAnnouncementAdmin() { document.getElementById('announcementAdminList').innerHTML = announcements.map((a,i)=>`<div class="slider-img-row"><input class="slider-img-url" value="${a.text}" id="annText${i}"><button onclick="removeAnnouncementRow(${i})" style="background:none; border:none; color:var(--accent); cursor:pointer;">✕</button></div>`).join(''); }
+async function saveAnnouncements() { announcements = announcements.map((_,i)=>({text:document.getElementById(`annText${i}`)?.value||''})).filter(a=>a.text); await fsSave('announcements', announcements); renderAnnouncementBar(); showToast('Announcements saved'); }
+function addAnnouncementRow() { announcements.push({text:''}); renderAnnouncementAdmin(); }
+function removeAnnouncementRow(i) { announcements.splice(i,1); renderAnnouncementAdmin(); fsSave('announcements', announcements); renderAnnouncementBar(); }
+
+async function saveFeatureBanner() { featureBanner = { img: document.getElementById('fbImgUrl').value, eyebrow: document.getElementById('fbEyebrow').value, heading: document.getElementById('fbHeading').value, sub: document.getElementById('fbSub').value, btn: document.getElementById('fbBtn').value }; await fsSave('featureBanner', featureBanner); renderFeatureBanner(); showToast('Feature banner saved'); }
+async function uploadFeatureBanner(input) { let file = input.files[0]; if(!file) return; let url = await uploadToStorage(file, 'feature'); document.getElementById('fbImgUrl').value = url; document.getElementById('fbPreviewImg').src = url; showToast('Uploaded'); }
+function updateFBPreview() { let url = document.getElementById('fbImgUrl').value; document.getElementById('fbPreviewImg').src = url; }
+
+function renderAdminProductList() { let q = document.getElementById('adminSearch')?.value.toLowerCase()||''; let filtered = products.filter(p=>p.name.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q)); document.getElementById('adminProductList').innerHTML = filtered.map(p=>`<div class="admin-prod-item"><div class="prod-emoji">📦</div><div class="prod-info-admin"><strong>${p.name}</strong><div style="font-size:12px; color:var(--text-muted);">${p.brand} | ${p.cat} | Rs.${p.price}</div></div><div class="prod-actions"><button class="edit-btn" onclick="editProduct(${p.id})">Edit</button><button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button></div></div>`).join(''); document.getElementById('statTotal').innerText = products.length; document.getElementById('statNew').innerText = products.filter(p=>p.badge==='new').length; document.getElementById('statHot').innerText = products.filter(p=>p.badge==='hot').length; }
+
+let productMediaList = [];
+function addProductMedia(url='') { let div = document.createElement('div'); div.className = 'slider-img-row'; div.innerHTML = `<input class="slider-img-url" placeholder="Image URL" value="${url}" style="flex:1;"><div class="slider-img-preview">${url ? `<img src="${url}">` : '—'}</div><label class="upload-btn">📁 Upload<input type="file" accept="image/*" onchange="uploadProductMedia(this, this.closest('.slider-img-row'))"></label><button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--accent); cursor:pointer;">✕</button>`; document.getElementById('productMediaList').appendChild(div); }
+async function uploadProductMedia(input, row) { let file = input.files[0]; if(!file) return; let url = await uploadToStorage(file, 'products'); let urlInput = row.querySelector('.slider-img-url'); urlInput.value = url; let preview = row.querySelector('.slider-img-preview'); preview.innerHTML = `<img src="${url}">`; showToast('Uploaded'); }
+function getProductImages() { let imgs = []; document.querySelectorAll('#productMediaList .slider-img-url').forEach(inp=>{ if(inp.value.trim()) imgs.push(inp.value.trim()); }); return imgs; }
+
+// ── Color Variants (admin) ──
+let colorVariantsData = []; // [{name, hex, images:[]}]
+
+function renderColorVariantsAdmin() {
+  let list = document.getElementById('colorVariantsList');
+  if(!list) return;
+  list.innerHTML = colorVariantsData.map((cv, ci) => {
+    let thumbsHTML = cv.images.map((imgUrl, ii) => `
+      <div class="color-img-thumb">
+        <img src="${imgUrl}" onerror="this.src='https://placehold.co/48x48/1a1a1a/ff6b6b?text=img'">
+        <button class="remove-thumb" onclick="removeColorImage(${ci},${ii})">✕</button>
+      </div>`).join('');
+    return `
+    <div class="color-variant-row" id="cvRow${ci}">
+      <div class="color-swatch-preview" style="background:${cv.hex||'#888888'};" onclick="document.getElementById('cvHex${ci}').click()"></div>
+      <input type="color" id="cvHex${ci}" value="${cv.hex||'#888888'}" style="display:none;" oninput="updateSwatchPreview(${ci},this.value)">
+      <input class="admin-input color-name-input" placeholder="Color Name (e.g. Midnight Black)" value="${cv.name||''}" id="cvName${ci}" style="margin:0;">
+      <input class="admin-input color-hex-input" placeholder="#hex" value="${cv.hex||'#888888'}" id="cvHexText${ci}" style="margin:0;" oninput="syncHexInput(${ci},this.value)">
+      <div class="color-imgs-wrap">
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Images for this color:</div>
+        <div class="color-img-thumbs" id="cvThumbs${ci}">
+          ${thumbsHTML}
+          <label class="add-color-img-btn" title="Add image">
+            +<input type="file" accept="image/*" style="display:none;" onchange="uploadColorImage(this,${ci})">
+          </label>
+        </div>
+        <input class="admin-input" placeholder="Or paste image URL" id="cvUrlInput${ci}" style="margin:4px 0 0; font-size:12px;" onkeydown="if(event.key==='Enter'){addColorImageUrl(${ci});event.preventDefault();}">
+      </div>
+      <button onclick="removeColorVariant(${ci})" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:18px;align-self:flex-start;flex-shrink:0;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function updateSwatchPreview(ci, hex) {
+  colorVariantsData[ci].hex = hex;
+  document.getElementById(`cvHexText${ci}`).value = hex;
+  document.getElementById(`cvRow${ci}`).querySelector('.color-swatch-preview').style.background = hex;
+}
+
+function syncHexInput(ci, val) {
+  colorVariantsData[ci].hex = val;
+  let hexPicker = document.getElementById(`cvHex${ci}`);
+  if(/^#[0-9a-fA-F]{6}$/.test(val)) { hexPicker.value = val; document.getElementById(`cvRow${ci}`).querySelector('.color-swatch-preview').style.background = val; }
+}
+
+function addColorVariant() {
+  colorVariantsData.push({ name: '', hex: '#888888', images: [] });
+  renderColorVariantsAdmin();
+}
+
+function removeColorVariant(ci) {
+  colorVariantsData.splice(ci, 1);
+  renderColorVariantsAdmin();
+}
+
+async function uploadColorImage(input, ci) {
+  let file = input.files[0]; if(!file) return;
+  let url = await uploadToStorage(file, 'products');
+  colorVariantsData[ci].images.push(url);
+  renderColorVariantsAdmin();
+  showToast('Image added');
+}
+
+function addColorImageUrl(ci) {
+  let inp = document.getElementById(`cvUrlInput${ci}`);
+  let url = inp.value.trim(); if(!url) return;
+  colorVariantsData[ci].images.push(url);
+  inp.value = '';
+  renderColorVariantsAdmin();
+}
+
+function removeColorImage(ci, ii) {
+  colorVariantsData[ci].images.splice(ii, 1);
+  renderColorVariantsAdmin();
+}
+
+function getColorVariants() {
+  // Sync name/hex from inputs before saving
+  return colorVariantsData.map((cv, ci) => ({
+    name: document.getElementById(`cvName${ci}`)?.value || cv.name,
+    hex:  document.getElementById(`cvHexText${ci}`)?.value || cv.hex,
+    images: cv.images
+  })).filter(cv => cv.name.trim());
+}
+function addSpecRow(key='', val='') { let div = document.createElement('div'); div.className = 'slider-img-row'; div.innerHTML = `<input placeholder="Specification" value="${key}" style="flex:1;"><input placeholder="Value" value="${val}" style="flex:1;"><button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--accent); cursor:pointer;">✕</button>`; document.getElementById('specsList').appendChild(div); }
+function getSpecs() { let specs = []; document.querySelectorAll('#specsList .slider-img-row').forEach(row=>{ let k = row.children[0]?.value; let v = row.children[1]?.value; if(k&&v) specs.push([k,v]); }); return specs; }
+
+function editProduct(id) { let p = products.find(x=>x.id===id); if(!p) return; editingProductId = p.id; document.getElementById('prodName').value = p.name; document.getElementById('prodBrand').value = p.brand; document.getElementById('prodCat').value = p.cat; document.getElementById('prodPrice').value = p.price; document.getElementById('prodBadge').value = p.badge||''; document.getElementById('prodDesc').value = p.desc||''; document.getElementById('productMediaList').innerHTML = ''; (p.images||[]).forEach(img=>addProductMedia(img)); document.getElementById('specsList').innerHTML = ''; (p.specs||[]).forEach(s=>addSpecRow(s[0],s[1])); colorVariantsData = (p.colors||[]).map(c=>({name:c.name||'',hex:c.hex||'#888888',images:[...(c.images||[])]})); renderColorVariantsAdmin(); document.getElementById('formTitle').innerText = 'Edit Product'; document.getElementById('cancelEditBtn').style.display = 'inline-block'; }
+function cancelProductEdit() { editingProductId = null; document.getElementById('prodName').value = ''; document.getElementById('prodBrand').value = ''; document.getElementById('prodCat').value = ''; document.getElementById('prodPrice').value = ''; document.getElementById('prodBadge').value = ''; document.getElementById('prodDesc').value = ''; document.getElementById('productMediaList').innerHTML = ''; document.getElementById('specsList').innerHTML = ''; colorVariantsData = []; renderColorVariantsAdmin(); document.getElementById('formTitle').innerText = 'Add New Product'; document.getElementById('cancelEditBtn').style.display = 'none'; }
+async function saveProduct() { let name = document.getElementById('prodName').value.trim(); if(!name) { showToast('Product name required'); return; } let colors = getColorVariants(); let images = getProductImages(); if(images.length===0 && colors.length>0 && colors[0].images.length>0) images = [colors[0].images[0]]; if(images.length===0) images = ['https://placehold.co/600x600/1a1a1a/ff6b6b?text=Product']; let newProduct = { id: editingProductId || Date.now(), name: name, brand: document.getElementById('prodBrand').value, cat: document.getElementById('prodCat').value, price: parseInt(document.getElementById('prodPrice').value), badge: document.getElementById('prodBadge').value || null, desc: document.getElementById('prodDesc').value, images: images, colors: colors, specs: getSpecs(), rating: 4.5, reviews: 0 }; if(editingProductId) { let idx = products.findIndex(p=>p.id===editingProductId); if(idx!==-1) products[idx] = newProduct; } else products.push(newProduct); await fsSave('products', products); cancelProductEdit(); renderAdminProductList(); renderHome(); renderShop(); showToast('Product saved'); }
+async function deleteProduct(id) { if(!confirm('Delete this product?')) return; products = products.filter(p=>p.id!==id); await fsSave('products', products); renderAdminProductList(); renderHome(); renderShop(); showToast('Deleted'); }
+
+function switchAdminTab(tab) { document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active')); if(tab==='media') { document.getElementById('adminTabMedia').style.display = 'block'; document.getElementById('adminTabProducts').style.display = 'none'; document.querySelector('.admin-tab:first-child').classList.add('active'); } else { document.getElementById('adminTabMedia').style.display = 'none'; document.getElementById('adminTabProducts').style.display = 'block'; document.querySelector('.admin-tab:last-child').classList.add('active'); renderAdminProductList(); } }
+
+let activePage = 'home';
+function loadSavedData() { let savedCart = loadFromLocal('cart',[]); if(savedCart.length) cart = savedCart; let savedWish = loadFromLocal('wishlist',[]); wishlist = new Set(savedWish); updateBadges(); renderCart(); renderWish(); }
+
+// ---- Expose functions to HTML onclick handlers (required for type="module") ----
+Object.assign(window, {
+  goHome, goShop, goCart, goWish, toggleCart, filterCat, handleSearch,
+  heroSlide, heroGoTo, showDetail, addToCart, toggleWish, changeQty, setCity,
+  doCheckout, sendToWhatsApp, closeWAModal,
+  checkAdminLogin, switchAdminTab,
+  renderSliderAdmin, addSliderRow, removeHeroRow, saveSliderImages, uploadHeroImage,
+  renderSpotlightAdmin, addSpotlightRow, removeSpotlightRow, saveSpotlightCards, uploadSpotlightImage,
+  renderPromiseAdmin, addPromiseRow, removePromiseRow, savePromiseStrip,
+  renderAnnouncementAdmin, addAnnouncementRow, removeAnnouncementRow, saveAnnouncements,
+  saveFeatureBanner, uploadFeatureBanner, updateFBPreview,
+  renderAdminProductList, addProductMedia, uploadProductMedia, addSpecRow,
+  editProduct, cancelProductEdit, saveProduct, deleteProduct,
+  addColorVariant, removeColorVariant, uploadColorImage, addColorImageUrl, removeColorImage,
+  updateSwatchPreview, syncHexInput,
+  selectDetailColor, selectDetailImg,
+});
+
+// Render immediately from local cache so the page is NEVER blank
+// Load products from local storage first for instant display
+products = loadFromLocal('products', defaultProducts);
+renderHome();
+renderShop();
+renderHeroSlider(); renderPromoCards(); renderFeatureBanner(); renderSpotlight(); renderPromiseStrip(); renderAnnouncementBar();
+renderSliderAdmin(); renderSpotlightAdmin(); renderPromiseAdmin(); renderAnnouncementAdmin();
+loadSavedData();
+
+// Then connect Firebase and attach real-time listeners
+document.getElementById('fbStatus').innerHTML = '🟡 Connecting…';
+document.getElementById('fbStatus').style.color = '#facc15';
+initFirebase().then(() => loadProducts());
+
+function handleHash() { if(window.location.hash==='#admin') { if(sessionStorage.getItem('apk_admin')==='1') showPage('admin'); else showPage('admin-login'); } }
+window.addEventListener('hashchange', handleHash);
+handleHash();
+
+</script>
+</body>
+</html>
